@@ -46,15 +46,15 @@ function parseLocationSegments(loc) {
   return String(loc)
     .split("|")
     .map(part => part.trim())
-    .filter(Boolean)
+    .filter(s => s !== "")
     .map(part => {
       const [hiStr, loStr] = part.split("-").map(n => n.trim());
-      const hi = parseInt(hiStr, 10);
-      const lo = loStr !== undefined && loStr !== "" ? parseInt(loStr, 10) : hi;
+      const hi = parseInt(hiStr);
+      const lo = parseInt(loStr);
       if (Number.isNaN(hi) || Number.isNaN(lo)) return null;
       return {
-        from: Math.max(hi, lo),
-        to: Math.min(hi, lo)
+        from: hi,
+        to: lo
       };
     })
     .filter(Boolean)
@@ -197,10 +197,7 @@ function expandBitfieldFields(fields, totalBits = 32) {
       const lo = seg.to;
       const width = hi - lo + 1;
       if (width <= 0) continue;
-      const label =
-        segments.length > 1
-          ? `${field.label}`
-          : field.label;
+      const label = field.label;
       expanded.push({
         label,
         from: hi,
