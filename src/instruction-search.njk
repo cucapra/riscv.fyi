@@ -23,7 +23,7 @@ permalink: search/index.html
     data-extension-slug="{{ inst.extensionSlug }}"
   >
     <a href="/instructions/{{ inst.name }}/">{{ inst.name }}</a>
-    <span class="ext-name" data-ext-slug="{{ inst.extensionSlug }}" title="Extension">
+    <span class="ext-name" data-extension-slug="{{ inst.extensionSlug }}" title="Extension">
     - {{ inst.extension }}
     </span>
   </li>
@@ -39,21 +39,15 @@ const filtersContainer = document.getElementById('extension-filters');
 const items = Array.from(list.querySelectorAll('li'));
 const activeExtensions = new Set();
 
-const extensionMap = new Map();
+const extensionSet = new Set();
 for (const li of items) {
-  const slug = li.dataset.extensionSlug;
   const extension = li.dataset.extension;
-  if (slug && extension && !extensionMap.has(slug)) {
-    extensionMap.set(slug, { extension, slug });
+    extensionSet.add(extension);
   }
-}
 
-const extensions = Array.from(extensionMap.values()).sort((a, b) => a.extension.localeCompare(b.extension));
-if (extensions.length === 0 && filtersFieldset) {
-  filtersFieldset.style.display = 'none';
-} else {
-  for (const { extension, slug } of extensions) {
-    const id = `ext-${slug}`;
+const extensions = Array.from(extensionSet).sort((a, b) => a.localeCompare(b));
+  for (const extension of extensions) {
+    const id = `ext-${extension}`;
     const label = document.createElement('label');
     label.className = 'filter-option';
 
@@ -77,7 +71,7 @@ if (extensions.length === 0 && filtersFieldset) {
     label.appendChild(text);
     filtersContainer.appendChild(label);
   }
-}
+
 
 function applyFilters() {
   const q = input.value.trim().toLowerCase();
