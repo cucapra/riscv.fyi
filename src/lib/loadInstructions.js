@@ -29,8 +29,9 @@ Returns null if the string isn’t 16 or 32 bits long.
 */
 function parseMatchBits(matchStr) {
 //  if (!matchStr) return null;
-  if (matchStr.length !== 32 && matchStr.length !== 16) return null;
-  return matchStr.split("");
+  if (matchStr.length !== 16 && matchStr.length !== 32) {
+    throw new Error(`Invalid match string length ${len}; expected 16 or 32`);
+  }  return matchStr.split("");
 }
 
 /*
@@ -42,7 +43,6 @@ Each segment defines one contiguous region of bits, and fields can have
 multiple disjoint segments (like immediates in S- or B-type instructions).
 */
 function parseLocationSegments(loc) {
-  if (loc === undefined || loc === null) return [];
   return String(loc)
     .split("|")
     .map(part => part.trim())
@@ -56,8 +56,6 @@ function parseLocationSegments(loc) {
         to: lo
       };
     })
-    //esnures segments are sorted MSB to LSB
-    .sort((a, b) => (b.from - a.from) || (b.to - a.to));
 }
 
 
@@ -96,8 +94,19 @@ function computeFields(doc) {
 
   // --- Parse variable fields (e.g., rd, rs1, imm) ---
   for (const v of vars) {
-    const segments = parseLocationSegments(v.location);
-    if (segments.length === 0) continue;
+    const segments = parseLocationSegments(v.location); //not all variables have multiple locations
+  
+  // ensure segments are sorted MSB->LSB and non-overlapping
+    const sorted = [...segments].sort((a, b) => b.from - a.from || b.to - a.to);
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1];
+      const curr = sorted[i];
+      const overlaps = Math.max(prev.to, curr.to) <= Math.min(prev.from, curr.from);
+      if (overlaps) {
+        throw new Error(`Overlapping segments for ${v.name}: ${JSON.stringify(segments)}`);
+      }
+    }
+
   // Find the overall high/low bits and width
     const from = Math.max(...segments.map(s => s.from));
     const to = Math.min(...segments.map(s => s.to));
@@ -204,7 +213,6 @@ function expandBitfieldFields(fields, totalBits = 32) {
       const hi = seg.from;
       const lo = seg.to;
       const width = hi - lo + 1;
-      if (width <= 0) continue;
       const label = field.label;
       expanded.push({
         label,
