@@ -45,7 +45,7 @@ for (const li of items) {
     extensionSet.add(extension);
   }
 
-const extensions = Array.from(extensionSet).sort((a, b) => a.localeCompare(b));
+const extensions = Array.from(extensionSet).sort();
   for (const extension of extensions) {
     const id = `ext-${extension}`;
     const label = document.createElement('label');
