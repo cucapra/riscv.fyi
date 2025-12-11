@@ -28,10 +28,10 @@ into an array of single characters, each representing one bit.
 Returns null if the string isn’t 16 or 32 bits long.
 */
 function parseMatchBits(matchStr) {
-//  if (!matchStr) return null;
   if (matchStr.length !== 16 && matchStr.length !== 32) {
     throw new Error(`Invalid match string length ${len}; expected 16 or 32`);
-  }  return matchStr.split("");
+  }  
+  return matchStr.split("");
 }
 
 /*
@@ -57,7 +57,6 @@ function parseLocationSegments(loc) {
       };
     })
 }
-
 
 /*
 Extract all variable and constant fields from an instruction definition.
@@ -210,14 +209,12 @@ function expandBitfieldFields(fields, totalBits = 32) {
       : [{ from: field.from, to: field.to }];
 
     for (const seg of segments) {
-      const hi = seg.from;
-      const lo = seg.to;
-      const width = hi - lo + 1;
+      const width = seg.from - seg.to + 1;
       const label = field.label;
       expanded.push({
         label,
-        from: hi,
-        to: lo,
+        from: seg.from,
+        to: seg.to,
         width,
         kind: field.kind
       });
