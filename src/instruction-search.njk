@@ -14,7 +14,7 @@ permalink: search/index.html
   <div id="extension-filters" class="filter-options"></div>
 </fieldset>
 
-<ul id="list">
+<ul id="instruction_list">
 {% for inst in instructions %}
   <li
     data-search="{{ (inst.name ~ ' ' ~ inst.longName) | lower }}"
@@ -32,13 +32,14 @@ permalink: search/index.html
 
 <script>
 const input = document.getElementById('search');
-const list = document.getElementById('list');
+const instruction_list = document.getElementById('instruction_list');
 const filtersFieldset = document.getElementById('extension-filters-fieldset');
 {# the blank area where we’ll insert checkboxes #}
 const filtersContainer = document.getElementById('extension-filters');
-const items = Array.from(list.querySelectorAll('li'));
+const items = Array.from(instruction_list.querySelectorAll('li'));
 const activeExtensions = new Set();
 
+// Gather unique extension names from the rendered instruction <li> items.
 const extensionSet = new Set();
 for (const li of items) {
   const extension = li.dataset.extension;
@@ -126,7 +127,7 @@ applyFilters();
 
 <style>
 body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 2rem auto; max-width: 900px; padding: 0 1rem; }
-ul { list-style: none; padding: 0; }
+ul { instruction_list-style: none; padding: 0; }
 li { margin: 6px 0; }
 a { text-decoration: none; color: #0366d6; }
 a:hover { text-decoration: underline; }
