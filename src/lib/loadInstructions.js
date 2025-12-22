@@ -28,8 +28,9 @@ into an array of single characters, each representing one bit.
 Returns null if the string isn’t 16 or 32 bits long.
 */
 function parseMatchBits(matchStr) {
-  if (!matchStr) return null;
-  if (matchStr.length !== 32 && matchStr.length !== 16) return null;
+  if (matchStr.length !== 16 && matchStr.length !== 32) {
+    throw new Error(`Invalid match string length ${len}; expected 16 or 32`);
+  }  
   return matchStr.split("");
 }
 
@@ -42,25 +43,20 @@ Each segment defines one contiguous region of bits, and fields can have
 multiple disjoint segments (like immediates in S- or B-type instructions).
 */
 function parseLocationSegments(loc) {
-  if (loc === undefined || loc === null) return [];
   return String(loc)
     .split("|")
     .map(part => part.trim())
-    .filter(Boolean)
     .map(part => {
       const [hiStr, loStr] = part.split("-").map(n => n.trim());
-      const hi = parseInt(hiStr, 10);
-      const lo = loStr !== undefined && loStr !== "" ? parseInt(loStr, 10) : hi;
-      if (Number.isNaN(hi) || Number.isNaN(lo)) return null;
+      const hi = parseInt(hiStr);
+      // If no low end is provided (e.g., "31" or "31-"), treat it as a single-bit range at `hi`.
+      const lo = loStr !== undefined && loStr !== "" ? parseInt(loStr) : hi;
       return {
-        from: Math.max(hi, lo),
-        to: Math.min(hi, lo)
+        from: hi,
+        to: lo
       };
     })
-    .filter(Boolean)
-    .sort((a, b) => (b.from - a.from) || (b.to - a.to));
 }
-
 
 /*
 Extract all variable and constant fields from an instruction definition.
@@ -74,15 +70,19 @@ This function handles both flat encodings and multi-variant encodings
     ...
   ]
 
-These field objects describe what appears at each bit position.
+These field objects describe what appears at each bit position. 
+The `kind` property indicates whether the field is a variable (part of the instruction encoding)
+or a constant (fixed bits defined by the match pattern).
+Segments are included for multi-segment fields such as when the location is non-contiguous.
 */
 function computeFields(doc) {
+  // Some instruction docs don't define an encoding; without match/variables we have no bit layout to emit.
   const fields = [];
   if (!doc.encoding) return fields;
-
+  // Encodings may be a flat object with match string/variables or a map of variants (e.g., { RV32: {...}, RV64: {...} });
   let enc = doc.encoding;
   if (!enc.match && !enc.variables) {
-    // pick RV32 first, otherwise first available sub-encoding
+    // pick RV32 first, otherwise first available sub-encoding (not all instructions have both RV32 and RV64)
     const variants = Object.keys(enc); // e.g., ["RV32", "RV64"]
     const chosenKey = variants.includes("RV32") ? "RV32" : variants[0];
     enc = enc[chosenKey] || {};
@@ -93,8 +93,19 @@ function computeFields(doc) {
 
   // --- Parse variable fields (e.g., rd, rs1, imm) ---
   for (const v of vars) {
-    const segments = parseLocationSegments(v.location);
-    if (segments.length === 0) continue;
+    const segments = parseLocationSegments(v.location); //not all variables have multiple locations
+  
+  // ensure segments are sorted MSB->LSB and non-overlapping
+    const sorted = [...segments].sort((a, b) => b.from - a.from || b.to - a.to);
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1];
+      const curr = sorted[i];
+      const overlaps = Math.max(prev.to, curr.to) <= Math.min(prev.from, curr.from);
+      if (overlaps) {
+        throw new Error(`Overlapping segments for ${v.name}: ${JSON.stringify(segments)}`);
+      }
+    }
+
   // Find the overall high/low bits and width
     const from = Math.max(...segments.map(s => s.from));
     const to = Math.min(...segments.map(s => s.to));
@@ -105,13 +116,17 @@ function computeFields(doc) {
   // --- Parse constant bit regions from the match pattern ---
   // (bits that are fixed 0/1, not "-")
   if (match) {
-    let bit = match.length - 1;
-    while (bit >= 0) {
+    for (let bit = match.length - 1; bit >= 0; bit--) {
+      if (match[match.length - 1 - bit] === "-") continue;
+
+      //For a pattern like "0000000-----000-----0110011", this extracts regions such as:
+      // "0110011" at bits [6:0]
+      // "000" at bits [14:12]
+      // "0000000" at bits [31:25]
       const hi = bit;
       while (bit >= 0 && match[match.length - 1 - bit] !== "-") bit--;
       const lo = bit + 1;
       const width = hi - lo + 1;
-      if (width <= 0) { bit--; continue; }
 
       const bits = match.slice(match.length - 1 - hi, match.length - lo).join("");
 
@@ -188,23 +203,18 @@ function expandBitfieldFields(fields, totalBits = 32) {
 
   // Expand multi-segment fields into individual entries
   for (const field of fields) {
+    // Most fields are contiguous and don't carry a segments array; fall back to [from..to] so they still render.
     const segments = Array.isArray(field.segments) && field.segments.length
       ? field.segments
       : [{ from: field.from, to: field.to }];
 
     for (const seg of segments) {
-      const hi = seg.from;
-      const lo = seg.to;
-      const width = hi - lo + 1;
-      if (width <= 0) continue;
-      const label =
-        segments.length > 1
-          ? `${field.label}`
-          : field.label;
+      const width = seg.from - seg.to + 1;
+      const label = field.label;
       expanded.push({
         label,
-        from: hi,
-        to: lo,
+        from: seg.from,
+        to: seg.to,
         width,
         kind: field.kind
       });
@@ -273,7 +283,7 @@ module.exports = function loadInstructions() {
         reg: filledFields.map(f => {
           let name = f.label;
           // Constant fields have their label part before "=" removed (e.g., "funct7=0000000" → "0000000").
-          if (f.kind === "const" && typeof name === "string") {
+          if (f.kind === "const") {
             const idx = name.indexOf("=");
             if (idx !== -1 && idx + 1 < name.length) {
               name = name.slice(idx + 1);
