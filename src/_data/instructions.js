@@ -1,3 +1,3 @@
-import loadInstructions from "../lib/loadInstructions.js";
+import loadInstructions from "../lib/loadInstructions.ts";
 
 export default loadInstructions;
