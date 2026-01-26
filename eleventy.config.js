@@ -1,4 +1,6 @@
 module.exports = function(eleventyConfig) {
+  eleventyConfig.addPassthroughCopy("src/style.css");
+
   eleventyConfig.addFilter("bitRange", function(range) {
     if (!range) return "";
     if (typeof range === "string") return range;
