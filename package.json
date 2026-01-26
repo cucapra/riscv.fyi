@@ -2,7 +2,7 @@
   "name": "riscv-ref",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "eleventy",
     "serve": "eleventy --serve --port=8080",
