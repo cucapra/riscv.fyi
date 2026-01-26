@@ -6,14 +6,20 @@
 // extracts encoding information (match bits + variable positions), and
 // generates compact bitfield layouts for visualization using `bit-field`.
 
+import * as fs from "fs";
+import * as path from "path";
+import * as yaml from "js-yaml";
+import render from "bit-field/lib/render.js";
+import * as onml from "onml";
 
-const fs = require("fs");
-const path = require("path");
-const yaml = require("js-yaml");
-const render = require("bit-field/lib/render");
-const onml = require("onml");
-
-const INST_ROOT = path.join(process.cwd(), "riscv-unified-db", "spec", "std", "isa", "inst");
+const INST_ROOT = path.join(
+  process.cwd(),
+  "riscv-unified-db",
+  "spec",
+  "std",
+  "isa",
+  "inst",
+);
 let cache = null;
 
 function readYamlFile(p) {
@@ -30,7 +36,7 @@ Returns null if the string isn’t 16 or 32 bits long.
 function parseMatchBits(matchStr) {
   if (matchStr.length !== 16 && matchStr.length !== 32) {
     throw new Error(`Invalid match string length ${len}; expected 16 or 32`);
-  }  
+  }
   return matchStr.split("");
 }
 
@@ -45,17 +51,17 @@ multiple disjoint segments (like immediates in S- or B-type instructions).
 function parseLocationSegments(loc) {
   return String(loc)
     .split("|")
-    .map(part => part.trim())
-    .map(part => {
-      const [hiStr, loStr] = part.split("-").map(n => n.trim());
+    .map((part) => part.trim())
+    .map((part) => {
+      const [hiStr, loStr] = part.split("-").map((n) => n.trim());
       const hi = parseInt(hiStr);
       // If no low end is provided (e.g., "31" or "31-"), treat it as a single-bit range at `hi`.
       const lo = loStr !== undefined && loStr !== "" ? parseInt(loStr) : hi;
       return {
         from: hi,
-        to: lo
+        to: lo,
       };
-    })
+    });
 }
 
 /*
@@ -70,7 +76,7 @@ This function handles both flat encodings and multi-variant encodings
     ...
   ]
 
-These field objects describe what appears at each bit position. 
+These field objects describe what appears at each bit position.
 The `kind` property indicates whether the field is a variable (part of the instruction encoding)
 or a constant (fixed bits defined by the match pattern).
 Segments are included for multi-segment fields such as when the location is non-contiguous.
@@ -94,21 +100,24 @@ function computeFields(doc) {
   // --- Parse variable fields (e.g., rd, rs1, imm) ---
   for (const v of vars) {
     const segments = parseLocationSegments(v.location); //not all variables have multiple locations
-  
-  // ensure segments are sorted MSB->LSB and non-overlapping
+
+    // ensure segments are sorted MSB->LSB and non-overlapping
     const sorted = [...segments].sort((a, b) => b.from - a.from || b.to - a.to);
     for (let i = 1; i < sorted.length; i++) {
       const prev = sorted[i - 1];
       const curr = sorted[i];
-      const overlaps = Math.max(prev.to, curr.to) <= Math.min(prev.from, curr.from);
+      const overlaps =
+        Math.max(prev.to, curr.to) <= Math.min(prev.from, curr.from);
       if (overlaps) {
-        throw new Error(`Overlapping segments for ${v.name}: ${JSON.stringify(segments)}`);
+        throw new Error(
+          `Overlapping segments for ${v.name}: ${JSON.stringify(segments)}`,
+        );
       }
     }
 
-  // Find the overall high/low bits and width
-    const from = Math.max(...segments.map(s => s.from));
-    const to = Math.min(...segments.map(s => s.to));
+    // Find the overall high/low bits and width
+    const from = Math.max(...segments.map((s) => s.from));
+    const to = Math.min(...segments.map((s) => s.to));
     const width = segments.reduce((sum, s) => sum + (s.from - s.to + 1), 0);
     fields.push({ label: v.name, from, to, width, kind: "var", segments });
   }
@@ -128,7 +137,9 @@ function computeFields(doc) {
       const lo = bit + 1;
       const width = hi - lo + 1;
 
-      const bits = match.slice(match.length - 1 - hi, match.length - lo).join("");
+      const bits = match
+        .slice(match.length - 1 - hi, match.length - lo)
+        .join("");
 
       // Label common constant fields if their positions match
       let label = bits;
@@ -145,12 +156,14 @@ function computeFields(doc) {
   return fields;
 }
 
-
 function detectEncodingType(doc) {
   if (!doc.encoding || !Array.isArray(doc.encoding.variables)) return undefined;
-  const vars = Object.fromEntries(doc.encoding.variables.map(v => [v.name, String(v.location)]));
+  const vars = Object.fromEntries(
+    doc.encoding.variables.map((v) => [v.name, String(v.location)]),
+  );
   const eq = (name, hi, lo) => vars[name] === hi + "-" + lo;
-  if (eq("xd", 11, 7) && eq("xs1", 19, 15) && vars["imm"] === "31-20") return "I";
+  if (eq("xd", 11, 7) && eq("xs1", 19, 15) && vars["imm"] === "31-20")
+    return "I";
   if (eq("xd", 11, 7) && eq("xs1", 19, 15) && eq("xs2", 24, 20)) return "R";
   if (eq("xs2", 24, 20) && eq("xs1", 19, 15) && eq("imm", 11, 7)) return "S";
   if (vars["imm"] === "31-12" && eq("xd", 11, 7)) return "U";
@@ -172,12 +185,14 @@ function normalizeDefinedBy(value, fallback) {
 }
 
 function slugifyExtension(ext) {
-  return ext
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "unknown";
+  return (
+    ext
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "unknown"
+  );
 }
 /*
 Example of expanding multi-segment fields into individual contiguous entries.
@@ -204,9 +219,10 @@ function expandBitfieldFields(fields, totalBits = 32) {
   // Expand multi-segment fields into individual entries
   for (const field of fields) {
     // Most fields are contiguous and don't carry a segments array; fall back to [from..to] so they still render.
-    const segments = Array.isArray(field.segments) && field.segments.length
-      ? field.segments
-      : [{ from: field.from, to: field.to }];
+    const segments =
+      Array.isArray(field.segments) && field.segments.length
+        ? field.segments
+        : [{ from: field.from, to: field.to }];
 
     for (const seg of segments) {
       const width = seg.from - seg.to + 1;
@@ -216,16 +232,15 @@ function expandBitfieldFields(fields, totalBits = 32) {
         from: seg.from,
         to: seg.to,
         width,
-        kind: field.kind
+        kind: field.kind,
       });
     }
   }
-   expanded.sort((a, b) => b.from - a.from);
+  expanded.sort((a, b) => b.from - a.from);
   return expanded;
 }
 
-
-module.exports = function loadInstructions() {
+export default function loadInstructions() {
   if (cache) return cache;
 
   if (!fs.existsSync(INST_ROOT)) {
@@ -243,7 +258,7 @@ module.exports = function loadInstructions() {
     const extDir = path.join(INST_ROOT, extension);
     const files = fs
       .readdirSync(extDir)
-      .filter(fileName => fileName.endsWith(".yaml"));
+      .filter((fileName) => fileName.endsWith(".yaml"));
 
     for (const fileName of files) {
       const filePath = path.join(extDir, fileName);
@@ -254,11 +269,12 @@ module.exports = function loadInstructions() {
       const definedByRaw = doc.definedBy;
       const definedBy = normalizeDefinedBy(definedByRaw, extension);
       const base = doc.base || 32;
-      const assemblyArgs = typeof doc.assembly === "string"
-        ? doc.assembly
-        : Array.isArray(doc.assembly)
-        ? doc.assembly.join(", ")
-        : "";
+      const assemblyArgs =
+        typeof doc.assembly === "string"
+          ? doc.assembly
+          : Array.isArray(doc.assembly)
+            ? doc.assembly.join(", ")
+            : "";
       const syntax = (name + " " + assemblyArgs).trim();
       const fields = computeFields(doc);
       const encType = detectEncodingType(doc);
@@ -280,7 +296,7 @@ module.exports = function loadInstructions() {
       const totalBits = doc.encoding?.match?.length === 16 ? 16 : 32;
       const filledFields = expandBitfieldFields(fields, totalBits);
       const bitfieldJSON = {
-        reg: filledFields.map(f => {
+        reg: filledFields.map((f) => {
           let name = f.label;
           // Constant fields have their label part before "=" removed (e.g., "funct7=0000000" → "0000000").
           if (f.kind === "const") {
@@ -291,9 +307,9 @@ module.exports = function loadInstructions() {
           }
           return {
             name,
-            bits: f.width
+            bits: f.width,
           };
-        })
+        }),
       };
 
       let bitfieldSVG = "";
@@ -320,11 +336,11 @@ module.exports = function loadInstructions() {
           fields,
           opcode,
           funct3,
-          funct7
+          funct7,
         },
         extension,
         extensionSlug: slugifyExtension(extension),
-        bitfieldSVG
+        bitfieldSVG,
       });
     }
   }
@@ -337,4 +353,4 @@ module.exports = function loadInstructions() {
 
   cache = instructions;
   return cache;
-};
+}
