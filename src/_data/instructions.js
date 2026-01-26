@@ -1,3 +1,3 @@
-const loadInstructions = require("../lib/loadInstructions");
+import loadInstructions from "../lib/loadInstructions.js";
 
-module.exports = () => loadInstructions();
+export default loadInstructions;

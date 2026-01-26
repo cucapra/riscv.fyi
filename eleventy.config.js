@@ -20,6 +20,13 @@ export default function (eleventyConfig) {
     },
   });
 
+  // And this is the one for enabling TypeScript at Eleventy compile time, i.e.,
+  // in the `_data` directory.
+  eleventyConfig.addExtension("11ty.ts", {
+    key: "11ty.js",
+  });
+  eleventyConfig.addTemplateFormats("11ty.ts");
+
   eleventyConfig.addFilter("bitRange", function (range) {
     if (!range) return "";
     if (typeof range === "string") return range;
