@@ -1,7 +1,7 @@
-module.exports = function(eleventyConfig) {
+export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/style.css");
 
-  eleventyConfig.addFilter("bitRange", function(range) {
+  eleventyConfig.addFilter("bitRange", function (range) {
     if (!range) return "";
     if (typeof range === "string") return range;
     if (Array.isArray(range)) return `${range[0]}-${range[1]}`;
@@ -13,10 +13,9 @@ module.exports = function(eleventyConfig) {
       input: "src",
       output: "_site",
       includes: "_includes",
-      data: "_data"
+      data: "_data",
     },
     htmlTemplateEngine: "njk",
-    markdownTemplateEngine: "njk"
+    markdownTemplateEngine: "njk",
   };
-};
-
+}
