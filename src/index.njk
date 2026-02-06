@@ -3,14 +3,16 @@ title: RISC-V Instruction Extensions
 layout: layout.njk
 ---
 <h1>The Best RISC-V Instruction Set Reference Manual</h1>
-
 <p>
-Browse the instruction set by extension. Pick an extension to see every instruction defined inside it.
-</p>
+    RISC-V instructions are grouped into <strong>extensions</strong>, each identified by a series of letters.
+    We have further grouped these extensions into {{ extensionGroups | length }} <strong>extension groups</strong> based on their common functionality. These extension groups are listed below for your convenience, in relative order of importance. Feel free to explore!
+<p>
 
-<p class="primary-callout">
-The base integer <strong>I</strong> extension is the most widely implemented set of instructions. Start there if you're looking for the core ISA.
-</p>
+{# {% for extGroupName, extGroupInfo in extensionGroups %}
+    <p class="primary-callout">
+        <strong>{{ extGroupName }}</strong>
+    </p>
+{% endfor %} #}
 
 <ul id="extensions">
 {% for ext in extensions %}
