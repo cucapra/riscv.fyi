@@ -106,6 +106,7 @@ small {
     margin-left: 3px;
 }
 
+/* Dropdown Styling For Extension Groups */
 .dropdown-callout {
     background: #f1f8ff;
     border-left: 4px solid #0366d6;
@@ -132,14 +133,7 @@ small {
     border-radius: 4px;
 }
 
-.group-description {
-    font-weight: normal;
-    font-size: 0.95rem;
-    margin-left: 0.5rem;
-}
-
 .dropdown-callout .content {
-    margin-top: 12px;
     display: none;
 }
 
@@ -158,4 +152,40 @@ small {
 
 .dropdown-callout.open .header::after {
     transform: rotate(90deg);
+}
+
+/* Instruction List Styling */
+.instruction-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.instruction-pill {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #dee5ef;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #0346b6;
+    text-align: center;
+}
+
+.instruction-pill:hover {
+    background: #dceeff;
+    text-decoration: none;
+}
+
+.show-more {
+    all: unset;
+    cursor: pointer;
+    display: block;
+    margin: 1rem auto;
+    padding: 8px 12px;
+    background: #dee5ef;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #000000;
+    text-align: center;
 }

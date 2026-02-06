@@ -8,21 +8,57 @@ layout: layout.njk
     We have further grouped these extensions into {{ extensionGroups | length }} <strong>extension groups</strong> based on their common functionality. These extension groups are listed below for your convenience, in relative order of importance. Feel free to explore!
 <p>
 
+<p>Search by mnemonic or long name. Hit Enter on an exact mnemonic match to jump straight to the instruction details.</p>
+
+<input id="search" placeholder="Search mnemonic, e.g. addi" style="padding:8px; width: 100%; max-width: 480px;" />
+
+{# Creates box divide between checkboxes and rest of page #}
+<fieldset id="extension-filters-fieldset" class="filters">
+    <legend>Filter by extension group</legend>
+    <div id="extension-filters" class="filter-options"></div>
+</fieldset>
+
 {% for extGroupName, extGroupInfo in extensionGroups %}
     <div class="dropdown-callout {% if loop.first %} open{% endif %}">
         <div class="header">
-            <strong>{{ extGroupName }}</strong> - <span class="group-description">{{ extGroupInfo.description }}</span>
+            <strong>{{ extGroupName }}</strong> - {{ extGroupInfo.description }}
         </div>
         <div class="content">
-            <ul>
+            <ul class="extension-list">
                 {% for ext in extensions %}
                     {% if ext.group == extGroupName %}
-                        <li>
-                            <strong>{{ ext.name }}</strong>
-                            <a href="/extensions/{{ ext.slug }}/">({{ ext.description }})</a>:
-                            {% for inst in ext.instructions %}
-                                <a href="/instructions/{{ inst.name }}/" style="color: #000000">{{ inst.name }}</a>,
-                            {% endfor %}
+                        <li class="extension-entry">
+                            <div class="extension-header">
+                                <strong>{{ ext.name }}</strong>
+                                (<a href="/extensions/{{ ext.slug }}/" class="extension-desc">{{ ext.description }}</a>)
+                                - Add small description here...
+                            </div>
+
+                            {% set limit = 28 %}
+                            {% set total = ext.instructions | length %}
+
+                            <div class="instruction-grid">
+                                {% for inst in ext.previewInstructions %}
+                                    <a href="/instructions/{{ inst.name }}/" class="instruction-pill">
+                                        {{ inst.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+
+                            {% if total > limit %}
+                                <div class="instruction-grid" style="display: none;">
+                                    {% for inst in ext.instructions %}
+                                        <a href="/instructions/{{ inst.name }}/" class="instruction-pill">
+                                            {{ inst.name }}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+
+                                <button class="show-more" data-total="{{ total }}" onclick="toggleInstructions(this)">
+                                    Show all {{ total }} instructions
+                                </button>
+
+                            {% endif %}
                         </li>
                     {% endif %}
                 {% endfor %}
@@ -38,23 +74,28 @@ layout: layout.njk
             parent.classList.toggle("open");
         });
     });
+
+    function toggleInstructions(button) {
+        const hiddenGrid = button.previousElementSibling;
+        const originalGrid = hiddenGrid.previousElementSibling;
+
+        hiddenGrid.style.display = hiddenGrid.style.display === "none" ? "grid" : "none";
+        originalGrid.style.display = originalGrid.style.display === "none" ? "grid" : "none";
+
+        if (hiddenGrid.style.display === "grid") button.textContent = "Show first 49 instructions";
+        else button.textContent = `Show all ${button.dataset.total} instructions`;
+    }
 </script>
 
-<ul id="extensions">
-{% for ext in extensions %}
-    <li data-name="{{ ext.name | lower }}">
-        <a href="/extensions/{{ ext.slug }}/">{{ ext.name }}</a>
-            <p class="extension-description">
-            {% if ext.description %}
-                {{ ext.description }}
-            {% else %}
-                Description coming soon.
-            {% endif %}
-        </p>
-    </li>
-{% endfor %}
-</ul>
+<div id="instruction_list" class="instruction-grid" style="display: none;">
+    {% for inst in instructions %}
+        <a data-search="{{ (inst.name ~ ' ' ~ inst.longName) | lower }}"
+            data-mnemonic="{{ inst.name | lower }}"
+            data-extension="{{ inst.extension }}"
+            data-extension-slug="{{ inst.extensionSlug }}"
+            data-extension-group="{{ inst.extensionGroup }}"
+            href="/instructions/{{ inst.name }}/" class="instruction-pill" style="display: none;">{{ inst.name }}</a>
+    {% endfor %}
+</div>
 
-<p class="secondary-callout">
-<a href="/search/">Try the searchable instruction index.</a>
-</p>
+<script src="/scripts/search.js"></script>

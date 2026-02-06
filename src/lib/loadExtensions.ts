@@ -13,6 +13,10 @@ export default () => {
         }
     }
 
+    for (const inst of instructions) {
+        inst.extensionGroup = extensionsToGroup[inst.extension] || "Remaining Instructions";
+    }
+
     const extensions = {}
     for (const inst of instructions) {
         const name = inst.extension || "unknown";
@@ -33,6 +37,7 @@ export default () => {
     for (const entry of list) {
         entry.instructions.sort((a, b) => a.name.localeCompare(b.name));
         entry.count = entry.instructions.length;
+        entry.previewInstructions = entry.instructions.slice(0, 49);
     }
 
     list.sort((a, b) => a.name.localeCompare(b.name));
