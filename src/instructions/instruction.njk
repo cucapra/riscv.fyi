@@ -1,11 +1,11 @@
 ---
 pagination:
-  data: instructions
-  size: 1
-  alias: inst
+    data: instructions
+    size: 1
+    alias: inst
 permalink: instructions/{{ inst.name }}/index.html
 eleventyComputed:
-  title: "{{ inst.name }}"
+    title: "{{ inst.name }}"
 layout: layout.njk
 ---
 <h1>{{ inst.name }}</h1>
@@ -13,41 +13,41 @@ layout: layout.njk
 <p>{{ inst.description }}</p>
 
 <section>
-  <h2>Synopsis</h2>
-  <pre><code>{{ inst.syntax }}</code></pre>
+    <h2>Synopsis</h2>
+    <pre><code>{{ inst.syntax }}</code></pre>
 </section>
 
 <section>
-  <h2>Encoding</h2>
+    <h2>Encoding</h2>
 
-  <p><strong>Type:</strong> {{ inst.encodingType or "" }}</p>
+    <p><strong>Type:</strong> {{ inst.encodingType or "" }}</p>
 
-  <div class="bitfield-diagram">
-      {{ inst.bitfieldSVG | safe }}
-  </div>
+    <div class="bitfield-diagram">
+        {{ inst.bitfieldSVG | safe }}
+    </div>
 
-  <div class="bits">
-    {% if inst.encoding.funct7 %}<div><strong>funct7</strong>: {{ inst.encoding.funct7 }}</div>{% endif %}
-    {% if inst.encoding.funct3 %}<div><strong>funct3</strong>: {{ inst.encoding.funct3 }}</div>{% endif %}
-    {% if inst.encoding.opcode %}<div><strong>opcode</strong>: {{ inst.encoding.opcode }}</div>{% endif %}
-  </div>
+    <div class="bits">
+        {% if inst.encoding.funct7 %}<div><strong>funct7</strong>: {{ inst.encoding.funct7 }}</div>{% endif %}
+        {% if inst.encoding.funct3 %}<div><strong>funct3</strong>: {{ inst.encoding.funct3 }}</div>{% endif %}
+        {% if inst.encoding.opcode %}<div><strong>opcode</strong>: {{ inst.encoding.opcode }}</div>{% endif %}
+    </div>
 
 </section>
 
 <section>
-  <h2>RISC-V Instruction Encoder/Decoder</h2>
-  <p>
-    <a href="https://luplab.gitlab.io/rvcodecjs/#q={{ inst.name | urlencode }}&abi=false&isa=AUTO"
-       target="_blank" rel="noopener">
-      open {{ inst.name }} in rvcodecjs
-    </a>
-  </p>
+    <h2>RISC-V Instruction Encoder/Decoder</h2>
+    <p>
+        <a href="https://luplab.gitlab.io/rvcodecjs/#q={{ inst.name | urlencode }}&abi=false&isa=AUTO"
+        target="_blank" rel="noopener">
+        open {{ inst.name }} in rvcodecjs
+        </a>
+    </p>
 </section>
 
 <section>
-  <h2>Availability</h2>
-  <ul>
-    <li><strong>Extension:</strong> {{ inst.definedBy }}</li>
-    <li><strong>Base:</strong> {% if inst.base == 64 %}RV64 only{% else %}RV32 + RV64{% endif %}</li>
-  </ul>
+    <h2>Availability</h2>
+    <ul>
+        <li><strong>Extension:</strong> {{ inst.definedBy }}</li>
+        <li><strong>Base:</strong> {% if inst.base == 64 %}RV64 only{% else %}RV32 + RV64{% endif %}</li>
+    </ul>
 </section>

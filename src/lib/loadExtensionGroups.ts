@@ -1,16 +1,126 @@
-import baseExtensionData from "./baseExtensionData.json" with { type: "json" };
-
-type ExtensionGroupInfoDict = Record<string, ExtensionGroupInfo>; // Map from group name to group info
-
-type ExtensionGroupInfo = {
-    name: string;
-    description: string;
-    extensions: Record<string, string>; // Map from extension code to extension description
-    count: number;
+const baseExtensionData = {
+    "Basic ISA": {
+        description: "The fundamental integer instructions that form the core of the RISC-V architecture.",
+        extensions: {
+            B: "Bit Manipulation",
+            E: "Embedded Base",
+            I: "Base Integer",
+            M: "Integer Multiply/Divide",
+        },
+    },
+    "Bit Manipulation": {
+        description: "Extensions that provide high-performance operations for complex bitwise logic.",
+        extensions: {
+            Zba: "Address Generation Bit-Manip",
+            Zbb: "Basic Bit-Manip",
+            Zbc: "Carry-Less Multiply",
+            Zbs: "Single-Bit Manipulation",
+            Zbkb: "Bit-Manip Crypto B",
+            Zbkx: "Bit-Manip Crypto X",
+            Zcb: "Compressed Bit-Manip",
+            Zvbb: "Vector Bitwise",
+        },
+    },
+    "Floating Point": {
+        description: "Extensions for handling IEEE 754 floating-point numbers across various precisions.",
+        extensions: {
+            D: "Double-Precision Floating Point",
+            F: "Single-Precision Floating Point",
+            Q: "Quad-Precision Floating Point",
+            Zfh: "Half-Precision Floating Point",
+            Zcf: "Compressed Floating Point",
+            Zfa: "Vector Atomic Floating",
+        },
+    },
+    "Atomics": {
+        description: "Operations for thread-safe memory updates and synchronization in multi-core environments.",
+        extensions: {
+            A: "Atomic Instructions",
+            Zaamo: "Atomics extensions",
+            Zabha: "Byte/Halfword Atomics",
+            Zacas: "Compare-and-Swap Atomics",
+            Zalasr: "Atomic Logical Shift Right",
+            Zalrsc: "Load-Reserved/Store-Conditional",
+            Zawrs: "Wait-on-Reservation-Set",
+            Zfa: "Vector Atomic Floating",
+        },
+    },
+    "Vector": {
+        description: "Single Instruction Multiple Data (SIMD) extensions for high-throughput parallel data processing.",
+        extensions: {
+            V: "Vector",
+            Zfa: "Vector Atomic Floating",
+            Zfbfmin: "Vector BF16 Min",
+            Zvbb: "Vector Bitwise",
+            Zvbc: "Vector Carry-less Multiply",
+            Zvfbfmin: "Vector BF16 Min",
+            Zvfbfwma: "Vector BF16 Fused Multiply-Add",
+            Zvkg: "Vector Galois Field",
+            Zvkned: "Vector AES Decryption",
+            Zvknha: "Vector Hash",
+            Zvks: "Vector Crypto Suite",
+        },
+    },
+    "Compressed": {
+        description: "Shortened 16-bit versions of common instructions to improve instruction cache efficiency.",
+        extensions: {
+            C: "Compressed Instructions",
+            Zcb: "Compressed Bit-Manip",
+            Zcd: "Compressed Double",
+            Zcf: "Compressed Floating Point",
+            Zcmop: "Compressed Micro-Operations",
+            Zcmp: "Compressed Pair",
+        },
+    },
+    "Cryptographic": {
+        description: "Hardware acceleration for common encryption algorithms like AES and SHA.",
+        extensions: {
+            Zbkb: "Bit-Manip Crypto B",
+            Zbkx: "Bit-Manip Crypto X",
+            Zkn: "Scalar Cryptography",
+            Zknd: "NIST Suite: AES Decryption",
+            Zkne: "NIST Suite: AES Encryption",
+            Zknh: "NIST Suite: Hash",
+            Zks: "Scalar Crypto Suite",
+            Zvkg: "Vector Galois Field",
+            Zvkned: "Vector AES Decryption",
+            Zvknha: "Vector Hash",
+            Zvks: "Vector Crypto Suite",
+        },
+    },
+    "Supervisor": {
+        description: "Privileged instructions used by operating systems for system isolation and memory protection.",
+        extensions: {
+            H: "Hypervisor",
+            S: "Supervisor",
+            Sdext: "Supervisor Debug",
+            Smdbltrp: "Supervisor Multiple Double Trap",
+            Smrnmi: "Supervisor Recursive NMI",
+            Svinval: "Supervisor Virtual Invalidation",
+        },
+    },
+    "System & Memory Management": {
+        description: "Extensions dealing with cache management and instruction flow integrity.",
+        extensions: {
+            Zicbom: "Cache Block Management",
+            Zicboz: "Zero Cache Block",
+            Zicfilp: "Fetch Line Prefetch",
+            Zicfiss: "Instruction Streaming",
+            Zicsr: "CSR Instructions",
+            Zifencei: "Instruction-Fetch Fence",
+        },
+    },
+    "Remaining Instructions": {
+        description: "Miscellaneous extensions that have not yet been categorized into the above groups by us.",
+        extensions: {
+            Zicond: "Conditional Ops",
+            Zimop: "Integer Multiply and Division Ops",
+        },
+    },
 };
 
 export default () => {
-    const extensionGroups: ExtensionGroupInfoDict = {};
+    const extensionGroups = {};
 
     for (const [groupName, groupData] of Object.entries(baseExtensionData)) {
         extensionGroups[groupName] = {
