@@ -1,6 +1,11 @@
 import loadInstructions from "./loadInstructions.ts";
 import loadExtensionGroups from "./loadExtensionGroups.ts";
 
+type ExtensionInfo = {
+    name: string;
+    slug: string;
+}
+
 export default () => {
     const instructions = loadInstructions();
     const extensionGroups = loadExtensionGroups();
@@ -37,7 +42,7 @@ export default () => {
     for (const entry of list) {
         entry.instructions.sort((a, b) => a.name.localeCompare(b.name));
         entry.count = entry.instructions.length;
-        entry.previewInstructions = entry.instructions.slice(0, 49);
+        entry.previewInstructions = entry.instructions.slice(0, 0);
     }
 
     list.sort((a, b) => a.name.localeCompare(b.name));

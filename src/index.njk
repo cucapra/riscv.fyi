@@ -8,7 +8,7 @@ layout: layout.njk
     We have further grouped these extensions into {{ extensionGroups | length }} <strong>extension groups</strong> based on their common functionality. These extension groups are listed below for your convenience, in relative order of importance. Feel free to explore!
 <p>
 
-<p>Search by mnemonic or long name. Hit Enter on an exact mnemonic match to jump straight to the instruction details.</p>
+<p>Search by mnemonic or long name. Hit <b>Enter</b> on an exact mnemonic match to jump straight to the instruction details.</p>
 
 <input id="search" placeholder="Search mnemonic, e.g. addi" style="padding:8px; width: 100%; max-width: 480px;" />
 
@@ -34,7 +34,7 @@ layout: layout.njk
                                 - Add small description here...
                             </div>
 
-                            {% set limit = 28 %}
+                            {% set limit = 0 %}
                             {% set total = ext.instructions | length %}
 
                             <div class="instruction-grid">
@@ -82,7 +82,7 @@ layout: layout.njk
         hiddenGrid.style.display = hiddenGrid.style.display === "none" ? "grid" : "none";
         originalGrid.style.display = originalGrid.style.display === "none" ? "grid" : "none";
 
-        if (hiddenGrid.style.display === "grid") button.textContent = "Show first 49 instructions";
+        if (hiddenGrid.style.display === "grid") button.textContent = "Hide instructions";
         else button.textContent = `Show all ${button.dataset.total} instructions`;
     }
 </script>

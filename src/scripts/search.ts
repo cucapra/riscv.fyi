@@ -14,7 +14,7 @@ for (const a of items) {
     extensionGroupSet.add(extension);
 }
 
-const extensionGroups = Array.from(extensionGroupSet).sort();
+const extensionGroups = Array.from(extensionGroupSet);
 for (const extensionGroup of extensionGroups) {
     const id = `ext-group-${extensionGroup}`;
     const label = document.createElement("label");
