@@ -1,3 +1,3 @@
-import loadExtensions from "../lib/loadExtensions.ts";
+import loadExtensions from "../lib/loadExtensions.js";
 
 export default loadExtensions;

@@ -9,83 +9,83 @@ const activeExtensions = new Set();
 // Gather unique extension names from the rendered instruction <li> items.
 const extensionSet = new Set();
 for (const li of items) {
-  const extension = li.dataset.extension;
-  extensionSet.add(extension);
+    const extension = li.dataset.extension;
+    extensionSet.add(extension);
 }
 
 const extensions = Array.from(extensionSet).sort();
 for (const extension of extensions) {
-  const id = `ext-${extension}`;
-  const label = document.createElement("label");
-  label.className = "filter-option";
+    const id = `ext-${extension}`;
+    const label = document.createElement("label");
+    label.className = "filter-option";
 
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  checkbox.value = extension;
-  checkbox.id = id;
-  checkbox.addEventListener("change", () => {
-    if (checkbox.checked) {
-      activeExtensions.add(extension);
-    } else {
-      activeExtensions.delete(extension);
-    }
-    applyFilters();
-  });
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = extension;
+    checkbox.id = id;
+    checkbox.addEventListener("change", () => {
+        if (checkbox.checked) {
+            activeExtensions.add(extension);
+        } else {
+            activeExtensions.delete(extension);
+        }
+        applyFilters();
+    });
 
-  const text = document.createElement("span");
-  text.textContent = extension;
+    const text = document.createElement("span");
+    text.textContent = extension;
 
-  label.appendChild(checkbox);
-  label.appendChild(text);
-  filtersContainer.appendChild(label);
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    filtersContainer.appendChild(label);
 }
 
 function applyFilters() {
-  const q = input.value.trim().toLowerCase();
-  const filtersActive = activeExtensions.size > 0;
-  for (const li of items) {
-    /* Check if the item matches the text search
-       - If the search box is empty, match everything
-       - Otherwise, match if the search string includes the query */
-    const matchesQuery = !q || (li.dataset.search || "").includes(q);
+    const q = input.value.trim().toLowerCase();
+    const filtersActive = activeExtensions.size > 0;
+    for (const li of items) {
+        /* Check if the item matches the text search
+            - If the search box is empty, match everything
+            - Otherwise, match if the search string includes the query */
+        const matchesQuery = !q || (li.dataset.search || "").includes(q);
 
-    /* Check if the item matches an active extension filter
-       - If no filters are active, match everything
-       - Otherwise, show only if its extension is selected */
-    const matchesExtension =
-      !filtersActive || activeExtensions.has(li.dataset.extension);
+        /* Check if the item matches an active extension filter
+            - If no filters are active, match everything
+            - Otherwise, show only if its extension is selected */
+        const matchesExtension =
+        !filtersActive || activeExtensions.has(li.dataset.extension);
 
-    // Show or hide this <li> depending on whether both match conditions are true
-    li.style.display = matchesQuery && matchesExtension ? "" : "none";
-  }
+        // Show or hide this <li> depending on whether both match conditions are true
+        li.style.display = matchesQuery && matchesExtension ? "" : "none";
+    }
 }
 
 input.addEventListener("input", applyFilters);
 
 input.addEventListener("keydown", (e) => {
-  // Only act if Enter is pressed
-  if (e.key !== "Enter") return;
+    // Only act if Enter is pressed
+    if (e.key !== "Enter") return;
 
-  const q = input.value.trim().toLowerCase();
+    const q = input.value.trim().toLowerCase();
 
-  // Do nothing if the box is empty
-  if (!q) return;
+    // Do nothing if the box is empty
+    if (!q) return;
 
-  const filtersActive = activeExtensions.size > 0;
+    const filtersActive = activeExtensions.size > 0;
 
-  /* Look for an exact mnemonic match among all instructions
-     - If filters are active, also ensure it belongs to one of the selected extensions */
-  const exact = items.find((li) => {
-    if (li.dataset.mnemonic !== q) return false;
-    if (!filtersActive) return true;
-    return activeExtensions.has(li.dataset.extension);
-  });
+    /* Look for an exact mnemonic match among all instructions
+        - If filters are active, also ensure it belongs to one of the selected extensions */
+    const exact = items.find((li) => {
+        if (li.dataset.mnemonic !== q) return false;
+        if (!filtersActive) return true;
+        return activeExtensions.has(li.dataset.extension);
+    });
 
-  // If an exact match is found, redirect to that instruction's detail page
-  if (exact) {
-    const link = exact.querySelector("a").getAttribute("href");
-    location.href = link;
-  }
+    // If an exact match is found, redirect to that instruction's detail page
+    if (exact) {
+        const link = exact.querySelector("a").getAttribute("href");
+        location.href = link;
+    }
 });
 
 applyFilters();

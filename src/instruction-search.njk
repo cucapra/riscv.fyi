@@ -11,23 +11,23 @@ layout: layout.njk
 
 {# Creates box divide between checkboxes and rest of page #}
 <fieldset id="extension-filters-fieldset" class="filters">
-  <legend>Filter by extension</legend>
-  <div id="extension-filters" class="filter-options"></div>
+    <legend>Filter by extension</legend>
+    <div id="extension-filters" class="filter-options"></div>
 </fieldset>
 
 <ul id="instruction_list">
 {% for inst in instructions %}
-  <li
-    data-search="{{ (inst.name ~ ' ' ~ inst.longName) | lower }}"
-    data-mnemonic="{{ inst.name | lower }}"
-    data-extension="{{ inst.extension }}"
-    data-extension-slug="{{ inst.extensionSlug }}"
-  >
-    <a href="/instructions/{{ inst.name }}/">{{ inst.name }}</a>
-    <span class="ext-name" data-extension-slug="{{ inst.extensionSlug }}" title="Extension">
-    - {{ inst.extension }}
-    </span>
-  </li>
+    <li
+        data-search="{{ (inst.name ~ ' ' ~ inst.longName) | lower }}"
+        data-mnemonic="{{ inst.name | lower }}"
+        data-extension="{{ inst.extension }}"
+        data-extension-slug="{{ inst.extensionSlug }}"
+    >
+        <a href="/instructions/{{ inst.name }}/">{{ inst.name }}</a>
+        <span class="ext-name" data-extension-slug="{{ inst.extensionSlug }}" title="Extension">
+            - {{ inst.extension }}
+        </span>
+    </li>
 {% endfor %}
 </ul>
 

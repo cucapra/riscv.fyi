@@ -1,6 +1,9 @@
 import * as esbuild from "esbuild";
 
 export default function (eleventyConfig) {
+    // Ignore .gitignore and use .eleventyignore instead
+    eleventyConfig.setUseGitIgnore(false);
+
     // Static resources.
     eleventyConfig.addPassthroughCopy("src/style.css");
 
@@ -12,8 +15,8 @@ export default function (eleventyConfig) {
         compile: async (inputContent, inputPath) => {
             return async (data) => {
                 let { code } = await esbuild.transform(inputContent, {
-                loader: "ts",
-                minify: process.env.NODE_ENV === "production",
+                    loader: "ts",
+                    minify: process.env.NODE_ENV === "production",
                 });
                 return code;
             };

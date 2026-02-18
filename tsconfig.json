@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "outDir": "src/lib",
+        "rootDir": "src/lib",
+        "allowJs": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "noEmit": false
+    },
+    "include": ["src/lib/**/*"],
+    "exclude": ["node_modules", "src/scripts"]
+}
