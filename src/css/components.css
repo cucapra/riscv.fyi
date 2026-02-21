@@ -1,0 +1,27 @@
+.primary-callout {
+    background: #f1f8ff;
+    border-left: 4px solid #0366d6;
+    padding: 12px;
+    margin: 1rem 0;
+}
+
+.secondary-callout {
+    margin-top: 2rem;
+}
+
+.extension-description {
+    margin: 4px 0 0;
+    color: #586069;
+    font-size: 0.9rem;
+}
+
+.base-width {
+    display: inline-block;
+    color: white;
+    background: #6699d6;
+    border-radius: 6px;
+    font-size: 80%;
+    font-weight: bold;
+    padding: 1px 3px;
+    margin-left: 3px;
+}

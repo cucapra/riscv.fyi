@@ -5,7 +5,7 @@ export default function (eleventyConfig) {
     eleventyConfig.setUseGitIgnore(false);
 
     // Copy over static resources.
-    eleventyConfig.addPassthroughCopy("src/style.css");
+    eleventyConfig.addPassthroughCopy("src/css");
 
     // Directory configurations and template engines.
     return {
