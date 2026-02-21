@@ -1,19 +1,21 @@
-const input = document.getElementById("search");
-const instruction_list = document.getElementById("instruction_list");
-const filtersFieldset = document.getElementById("extension-filters-fieldset");
-// the blank area where we’ll insert checkboxes
-const filtersContainer = document.getElementById("extension-filters");
-const items = Array.from(instruction_list.querySelectorAll("li"));
-const activeExtensions = new Set();
+// Obtaining relevant DOM elements
+const input = document.getElementById("search") as HTMLInputElement;
+const instructionList = document.getElementById("instruction_list") as HTMLUListElement;
+const filtersContainer = document.getElementById("extension-filters") as HTMLDivElement;
+const items = Array.from(instructionList.querySelectorAll("li"));
 
-// Gather unique extension names from the rendered instruction <li> items.
-const extensionSet = new Set();
+
+// Extracting unique extensions to filter
+const activeExtensions = new Set<string>();
+const extensionSet = new Set<string>();
 for (const li of items) {
     const extension = li.dataset.extension;
-    extensionSet.add(extension);
+    if (extension) extensionSet.add(extension);
 }
-
 const extensions = Array.from(extensionSet).sort();
+
+
+// Creating a checkbox for each unique extension
 for (const extension of extensions) {
     const id = `ext-${extension}`;
     const label = document.createElement("label");
@@ -23,12 +25,10 @@ for (const extension of extensions) {
     checkbox.type = "checkbox";
     checkbox.value = extension;
     checkbox.id = id;
+
     checkbox.addEventListener("change", () => {
-        if (checkbox.checked) {
-            activeExtensions.add(extension);
-        } else {
-            activeExtensions.delete(extension);
-        }
+        if (checkbox.checked) activeExtensions.add(extension);
+        else activeExtensions.delete(extension);
         applyFilters();
     });
 
@@ -40,9 +40,12 @@ for (const extension of extensions) {
     filtersContainer.appendChild(label);
 }
 
+
+// Function to apply both text and extension filters to the instruction list
 function applyFilters() {
     const q = input.value.trim().toLowerCase();
     const filtersActive = activeExtensions.size > 0;
+
     for (const li of items) {
         /* Check if the item matches the text search
             - If the search box is empty, match everything
@@ -52,25 +55,21 @@ function applyFilters() {
         /* Check if the item matches an active extension filter
             - If no filters are active, match everything
             - Otherwise, show only if its extension is selected */
-        const matchesExtension =
-        !filtersActive || activeExtensions.has(li.dataset.extension);
+        const matchesExtension = !filtersActive || activeExtensions.has(li.dataset.extension);
 
         // Show or hide this <li> depending on whether both match conditions are true
         li.style.display = matchesQuery && matchesExtension ? "" : "none";
     }
 }
 
-input.addEventListener("input", applyFilters);
 
+// Set up event listeners for the search input
+input.addEventListener("input", applyFilters);
 input.addEventListener("keydown", (e) => {
     // Only act if Enter is pressed
     if (e.key !== "Enter") return;
-
     const q = input.value.trim().toLowerCase();
-
-    // Do nothing if the box is empty
-    if (!q) return;
-
+    if (!q) return; // Do nothing if the box is empty
     const filtersActive = activeExtensions.size > 0;
 
     /* Look for an exact mnemonic match among all instructions
@@ -88,4 +87,6 @@ input.addEventListener("keydown", (e) => {
     }
 });
 
+
+// Apply filters on page load
 applyFilters();
