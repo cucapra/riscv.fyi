@@ -1,4 +1,18 @@
-export interface YamlDoc {
+interface Segment {
+    from: number;
+    to: number;
+}
+
+interface Field {
+    label: string;
+    from: number;
+    to: number;
+    width: number;
+    kind: "var" | "const";
+    segments?: Segment[];
+}
+
+interface YamlDoc {
     name: string;
     long_name?: string;
     description?: string;
@@ -12,25 +26,7 @@ export interface YamlDoc {
     };
 }
 
-
-export interface Segment {
-    from: number;
-    to: number;
-    width?: number;
-}
-
-
-export interface Field {
-    label: string;
-    from: number;
-    to: number;
-    width: number;
-    kind: "var" | "const";
-    segments?: Segment[];
-}
-
-
-export interface InstructionInfo {
+interface InstructionInfo {
     name: string;
     longName: string;
     description: string;
@@ -41,7 +37,7 @@ export interface InstructionInfo {
     encodingType?: string;
     encoding: {
         match: string | null;
-        variables: unknown[];
+        variables: any[];
         fields: Field[];
         opcode?: string;
         funct3?: string;
@@ -52,11 +48,20 @@ export interface InstructionInfo {
     bitfieldSVG: string;
 }
 
-
-export interface ExtensionInfo {
+interface ExtensionInfo {
     name: string;
     slug: string;
     description: string | null;
     instructions: InstructionInfo[];
     count?: number;
+}
+
+declare module "bit-field/lib/render.js" {
+    const render: (segments: any[], options?: any) => any;
+    export default render;
+}
+
+declare module "onml" {
+    export function stringify(jsonml: any, options?: any): string;
+    export function parse(xml: string): any;
 }

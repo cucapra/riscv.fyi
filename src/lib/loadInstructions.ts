@@ -3,7 +3,6 @@
 // generates compact bitfield layouts for visualization using `bit-field`.
 
 
-import { YamlDoc, Segment, Field, InstructionInfo } from "./types.js";
 import render from "bit-field/lib/render.js";
 import * as yaml from "js-yaml";
 import * as onml from "onml";
@@ -256,9 +255,14 @@ export default function loadInstructions(): InstructionInfo[] {
             let bitfieldSVG = "";
             try {
                 const segments = bitfieldJSON.reg.slice().reverse();
-                const jsonml = render(segments, { bits: totalBits, vflip: false }); // MSB→LSB order
+                const jsonml = render(segments, {
+                    bits: totalBits,
+                    vflip: false,
+                    lanes: 1,
+                    hspace: 800,
+                }); // MSB→LSB order
                 bitfieldSVG = onml.stringify(jsonml);
-            } catch (err) { console.warn(`Failed to render SVG for ${name}:`, err); }
+            } catch (err) { console.warn(`Failed to render SVG for ${doc.name}:`, err); }
 
             instructions.push({
                 name: doc.name,

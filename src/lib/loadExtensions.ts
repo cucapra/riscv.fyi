@@ -1,4 +1,3 @@
-import { InstructionInfo, ExtensionInfo } from "./types.js";
 import { extensionDescriptions } from "./hardcodedData.js";
 import loadInstructions from "./loadInstructions.js";
 
