@@ -55,7 +55,7 @@ function applyFilters() {
         /* Check if the item matches an active extension filter
             - If no filters are active, match everything
             - Otherwise, show only if its extension is selected */
-        const matchesExtension = !filtersActive || activeExtensions.has(li.dataset.extension);
+        const matchesExtension = !filtersActive || activeExtensions.has(li.dataset.extension || "");
 
         // Show or hide this <li> depending on whether both match conditions are true
         li.style.display = matchesQuery && matchesExtension ? "" : "none";
@@ -77,13 +77,13 @@ input.addEventListener("keydown", (e) => {
     const exact = items.find((li) => {
         if (li.dataset.mnemonic !== q) return false;
         if (!filtersActive) return true;
-        return activeExtensions.has(li.dataset.extension);
+        return activeExtensions.has(li.dataset.extension || "");
     });
 
     // If an exact match is found, redirect to that instruction's detail page
     if (exact) {
-        const link = exact.querySelector("a").getAttribute("href");
-        location.href = link;
+        const link = exact.querySelector("a")?.getAttribute("href");
+        if (link) location.href = link;
     }
 });
 

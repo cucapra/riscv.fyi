@@ -33,7 +33,7 @@ into an array of single characters, each representing one bit.
 
 Returns null if the string isn’t 16 or 32 bits long.
 */
-function parseMatchBits(matchStr) {
+function parseMatchBits(matchStr: string) {
     if (matchStr.length !== 16 && matchStr.length !== 32) {
         throw new Error(`Invalid match string length ${matchStr.length}; expected 16 or 32`);
     }
@@ -160,7 +160,7 @@ function detectEncodingType(doc) {
     const vars = Object.fromEntries(
         doc.encoding.variables.map((v) => [v.name, String(v.location)]),
     );
-    const eq = (name, hi, lo) => vars[name] === hi + "-" + lo;
+    const eq = (name: string, hi: number, lo: number) => vars[name] === hi + "-" + lo;
     if (eq("xd", 11, 7) && eq("xs1", 19, 15) && vars["imm"] === "31-20") return "I";
     if (eq("xd", 11, 7) && eq("xs1", 19, 15) && eq("xs2", 24, 20)) return "R";
     if (eq("xs2", 24, 20) && eq("xs1", 19, 15) && eq("imm", 11, 7)) return "S";
@@ -279,7 +279,7 @@ export default function loadInstructions() {
             if (doc.encoding && doc.encoding.match) {
                 const m = parseMatchBits(doc.encoding.match);
                 if (m) {
-                    const sliceBits = (hi, lo) => m.slice(31 - hi, 32 - lo).join("");
+                    const sliceBits = (hi: number, lo: number) => m.slice(31 - hi, 32 - lo).join("");
                     opcode = sliceBits(6, 0);
                     funct3 = sliceBits(14, 12);
                     const f7 = sliceBits(31, 25);
