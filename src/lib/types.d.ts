@@ -1,10 +1,32 @@
+export interface YamlDoc {
+    name: string;
+    long_name?: string;
+    description?: string;
+    definedBy?: unknown;
+    base?: number;
+    assembly?: string | string[];
+    encoding?: {
+        match?: string;
+        variables?: { name: string; location: string | number }[];
+        [key: string]: any;
+    };
+}
+
+
+export interface Segment {
+    from: number;
+    to: number;
+    width?: number;
+}
+
+
 export interface Field {
     label: string;
     from: number;
     to: number;
     width: number;
     kind: "var" | "const";
-    segments?: { from: number; to: number }[];
+    segments?: Segment[];
 }
 
 
@@ -13,13 +35,13 @@ export interface InstructionInfo {
     longName: string;
     description: string;
     definedBy: string;
-    definedByRaw: any;
+    definedByRaw: unknown;
     base: number;
     syntax: string;
     encodingType?: string;
     encoding: {
         match: string | null;
-        variables: any[];
+        variables: unknown[];
         fields: Field[];
         opcode?: string;
         funct3?: string;
