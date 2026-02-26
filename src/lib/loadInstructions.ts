@@ -79,7 +79,7 @@ function computeFields(doc: YamlDoc): Field[] {
     if (!enc.match && !enc.variables) {
         const variants = Object.keys(enc); // e.g., ["RV32", "RV64"]
         const chosenKey = variants.includes("RV32") ? "RV32" : variants[0];
-        enc = enc[chosenKey] || {};
+        enc = enc[chosenKey] as EncodingDoc;
     }
 
     const match = enc.match ? parseMatchBits(enc.match) : null;
@@ -146,14 +146,15 @@ function detectEncodingType(doc: YamlDoc) {
 
 
 // Normalize the "definedBy" field into a consistent string format for display.
-function normalizeDefinedBy(value: any, fallback: string): string {
+function normalizeDefinedBy(value: unknown, fallback: string): string {
     if (!value) return fallback;
     if (typeof value === "string") return value;
     if (Array.isArray(value)) return value.join(", ");
     if (typeof value === "object") {
-        if (Array.isArray(value.anyOf)) return value.anyOf.join(" or ");
-        if (Array.isArray(value.allOf)) return value.allOf.join(" and ");
-        if (typeof value.name === "string") return value.name;
+        const obj = value as Record<string, unknown>;
+        if (Array.isArray(obj.anyOf)) return obj.anyOf.join(" or ");
+        if (Array.isArray(obj.allOf)) return obj.allOf.join(" and ");
+        if (typeof obj.name === "string") return obj.name;
     }
     return fallback;
 }

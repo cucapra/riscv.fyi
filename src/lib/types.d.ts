@@ -12,6 +12,14 @@ interface Field {
     segments?: Segment[];
 }
 
+
+interface EncodingDoc {
+    match?: string;
+    variables?: { name: string; location: string | number }[];
+    [variant: string]: unknown; // For handling RV32/RV64 variants
+}
+
+
 interface YamlDoc {
     name: string;
     long_name?: string;
@@ -19,11 +27,7 @@ interface YamlDoc {
     definedBy?: unknown;
     base?: number;
     assembly?: string | string[];
-    encoding?: {
-        match?: string;
-        variables?: { name: string; location: string | number }[];
-        [key: string]: any;
-    };
+    encoding?: EncodingDoc;
 }
 
 interface InstructionInfo {
@@ -37,7 +41,7 @@ interface InstructionInfo {
     encodingType?: string;
     encoding: {
         match: string | null;
-        variables: any[];
+        variables: unknown[];
         fields: Field[];
         opcode?: string;
         funct3?: string;
@@ -56,12 +60,26 @@ interface ExtensionInfo {
     count?: number;
 }
 
+
 declare module "bit-field/lib/render.js" {
-    const render: (segments: any[], options?: any) => any;
+    interface BitFieldSegment {
+        name: string;
+        bits: number;
+    }
+
+    interface BitFieldRenderOptions {
+        bits?: 16 | 32;
+        vflip?: boolean;
+        lanes?: number;
+        hspace?: number;
+    }
+
+    const render: (segments: BitFieldSegment[], options?: BitFieldRenderOptions) => string;
     export default render;
 }
 
+
 declare module "onml" {
-    export function stringify(jsonml: any, options?: any): string;
-    export function parse(xml: string): any;
+    type JsonML = string | [string, { [key: string]: unknown }?, ...JsonML[]];
+    export function stringify(jsonml: JsonML): string;
 }
