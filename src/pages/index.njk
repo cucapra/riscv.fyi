@@ -1,5 +1,6 @@
 ---
 title: RISC-V Instruction Extensions
+permalink: index.html
 layout: layout.njk
 ---
 <h1>The Best RISC-V Instruction Set Reference Manual</h1>
@@ -14,16 +15,16 @@ The base integer <strong>I</strong> extension is the most widely implemented set
 
 <ul id="extensions">
 {% for ext in extensions %}
-  <li data-name="{{ ext.name | lower }}">
-    <a href="/extensions/{{ ext.slug }}/">{{ ext.name }}</a>
-    <p class="extension-description">
-      {% if ext.description %}
-        {{ ext.description }}
-      {% else %}
-        Description coming soon.
-      {% endif %}
-    </p>
-  </li>
+    <li data-name="{{ ext.name | lower }}">
+        <a href="/extensions/{{ ext.slug }}/">{{ ext.name }}</a>
+        <p class="extension-description">
+            {% if ext.description %}
+                {{ ext.description }}
+            {% else %}
+                Description coming soon.
+            {% endif %}
+        </p>
+    </li>
 {% endfor %}
 </ul>
 

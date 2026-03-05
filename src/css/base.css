@@ -1,0 +1,30 @@
+body {
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    margin: 2rem auto;
+    max-width: 900px;
+    padding: 0 1rem;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin: 6px 0;
+}
+
+a {
+    text-decoration: none;
+    color: #0366d6;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+small {
+    color: #555;
+    margin-left: 8px;
+}

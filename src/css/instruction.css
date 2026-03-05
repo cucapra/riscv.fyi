@@ -1,0 +1,16 @@
+.bitfield-diagram {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    background: #fafafa;
+}
+
+.bits {
+    margin-top: 0.5rem;
+    color: #333;
+}
+
+svg text {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}

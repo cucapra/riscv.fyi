@@ -2,13 +2,20 @@
 ---
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="/style.css">
-  </head>
-  <body>
-    {{ content | safe }}
-  </body>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{ title }}</title>
+
+        <link rel="stylesheet" href="/css/base.css">
+        <link rel="stylesheet" href="/css/components.css">
+        {% if extra_css %}
+            {% for sheet in extra_css %}
+                <link rel="stylesheet" href="/css/{{ sheet }}.css">
+            {% endfor %}
+        {% endif %}
+    </head>
+    <body>
+        {{ content | safe }}
+    </body>
 </html>

@@ -1,0 +1,36 @@
+---
+title: Instruction Search
+permalink: search/index.html
+layout: layout.njk
+extra_css:
+    - search
+---
+<h1>Instruction Search</h1>
+
+<p>Search by mnemonic or long name. Hit Enter on an exact mnemonic match to jump straight to the instruction details.</p>
+
+<input id="search" placeholder="Search mnemonic, e.g. addi" style="padding:8px; width: 100%; max-width: 480px;" />
+
+{# Creates box divide between checkboxes and rest of page #}
+<fieldset id="extension-filters-fieldset" class="filters">
+    <legend>Filter by extension</legend>
+    <div id="extension-filters" class="filter-options"></div>
+</fieldset>
+
+<ul id="instruction_list">
+{% for inst in instructions %}
+    <li
+        data-search="{{ (inst.name ~ ' ' ~ inst.longName) | lower }}"
+        data-mnemonic="{{ inst.name | lower }}"
+        data-extension="{{ inst.extension }}"
+        data-extension-slug="{{ inst.extensionSlug }}"
+    >
+        <a href="/instructions/{{ inst.name }}/">{{ inst.name }}</a>
+        <span class="ext-name" data-extension-slug="{{ inst.extensionSlug }}" title="Extension">
+            - {{ inst.extension }}
+        </span>
+    </li>
+{% endfor %}
+</ul>
+
+<script type="module" src="/scripts/search.js"></script>
