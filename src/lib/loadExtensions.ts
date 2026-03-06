@@ -10,6 +10,10 @@ export default (): ExtensionInfo[] => {
     for (const inst of instructions) {
         const name = inst.extension || "unknown";
         const slug = inst.extensionSlug || "unknown";
+        if (slug === "unknown") {
+            console.warn(`Instruction ${inst.name} has no extension slug, using "unknown"`);
+        }
+
         if (!byExtension.has(name)) {
             byExtension.set(name, {
                 name, slug,
