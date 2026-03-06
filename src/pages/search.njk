@@ -25,7 +25,7 @@ extra_css:
         data-extension="{{ inst.extension }}"
         data-extension-slug="{{ inst.extensionSlug }}"
     >
-        <a href="/instructions/{{ inst.name }}/">{{ inst.name }}</a>
+        <a href="/{{ inst.extensionSlug }}/{{ inst.name }}/">{{ inst.name }}</a>
         <span class="ext-name" data-extension-slug="{{ inst.extensionSlug }}" title="Extension">
             - {{ inst.extension }}
         </span>

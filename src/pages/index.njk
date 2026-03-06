@@ -16,7 +16,7 @@ The base integer <strong>I</strong> extension is the most widely implemented set
 <ul id="extensions">
 {% for ext in extensions %}
     <li data-name="{{ ext.name | lower }}">
-        <a href="/extensions/{{ ext.slug }}/">{{ ext.name }}</a>
+        <a href="/{{ ext.slug }}/">{{ ext.name }}</a>
         <p class="extension-description">
             {% if ext.description %}
                 {{ ext.description }}
