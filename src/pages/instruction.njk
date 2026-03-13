@@ -3,7 +3,7 @@ pagination:
     data: instructions
     size: 1
     alias: inst
-permalink: instructions/{{ inst.name }}/index.html
+permalink: "{{ inst.extensionSlug }}/{{ inst.name }}/index.html"
 eleventyComputed:
     title: "{{ inst.name }}"
 layout: layout.njk

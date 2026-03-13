@@ -163,8 +163,8 @@ function normalizeDefinedBy(value: unknown, fallback: string): string {
 // Convert an extension name into a URL-friendly slug
 function slugifyExtension(ext: string): string {
     return (
-        ext.toString().trim().toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
+        ext.toString().trim()
+            .replace(/[^A-Za-z0-9]+/g, "-")
             .replace(/^-+|-+$/g, "") || "unknown"
     );
 }
