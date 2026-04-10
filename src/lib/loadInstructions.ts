@@ -132,7 +132,7 @@ function computeFields(doc: YamlDoc): Field[] {
 // Match common instruction formats (I, S, R) based on their variable field positions.
 function detectEncodingType(doc: YamlDoc) {
     if (!doc.encoding || !Array.isArray(doc.encoding.variables)) return undefined;
-    const vars = Object.fromEntries(doc.encoding.variables.map((v) => [v.name, String(v.location)]),);
+    const vars = Object.fromEntries(doc.encoding.variables.map((v) => [v.name, String(v.location)]));
     const eq = (name: string, hi: number, lo: number) => vars[name] === hi + "-" + lo;
 
     if (eq("xd", 11, 7) && eq("xs1", 19, 15) && eq("imm", 31, 20)) return "I";

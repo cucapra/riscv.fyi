@@ -9,7 +9,7 @@ extra_css:
 
 <p>Search by mnemonic or long name. Hit Enter on an exact mnemonic match to jump straight to the instruction details.</p>
 
-<input id="search" placeholder="Search mnemonic, e.g. addi" style="padding:8px; width: 100%; max-width: 480px;" />
+<input id="search" placeholder="Search mnemonic, e.g. addi" />
 
 {# Creates box divide between checkboxes and rest of page #}
 <fieldset id="extension-filters-fieldset" class="filters">
@@ -26,7 +26,7 @@ extra_css:
         data-extension-slug="{{ inst.extensionSlug }}"
     >
         <a href="/{{ inst.extensionSlug }}/{{ inst.name }}/">{{ inst.name }}</a>
-        <span class="ext-name" data-extension-slug="{{ inst.extensionSlug }}" title="Extension">
+        <span class="ext-name" title="Extension">
             - {{ inst.extension }}
         </span>
     </li>
