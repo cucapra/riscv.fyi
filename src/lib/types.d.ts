@@ -93,6 +93,18 @@ interface ExtensionInfo {
 }
 
 
+interface SearchEntry {
+    name: string;
+    search: string;
+    mnemonic: string;
+    extension: string;
+    extensionSlug: string;
+    url: string;
+    isPseudo: boolean;
+    realInstName: string | null;
+}
+
+
 declare module "bit-field/lib/render.js" {
     interface BitFieldSegment {
         name: string;
