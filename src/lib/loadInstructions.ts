@@ -145,6 +145,30 @@ function detectEncodingType(doc: YamlDoc) {
 }
 
 
+/*
+Enrich pseudo-instruction entries for display:
+- Builds `resolvedSyntax` by substituting the simple `name == value` pairs from 
+the `when` condition into the real instruction syntax.
+- Complex expressions (e.g. $signed(imm) == -1, imm[4:0] == 0) are left unreplaced.
+*/
+function preprocessPseudoInstructions(
+    pseudos: { when: string; to: string }[],
+    syntax: string,
+): PseudoInstruction[] {
+    return pseudos.map(({ when, to }) => {
+        const normalizedTo = to.replace(/,(?!\s)/g, ", ");
+        let resolvedSyntax = syntax;
+
+        // Extract simple `identifier == value` pairs; skip complex left-hand sides
+        const assignments = [...when.matchAll(/\b([a-zA-Z_]\w*)\s*==\s*([^\s)&|,\]]+)/g)];
+        for (const [, name, value] of assignments) {
+            resolvedSyntax = resolvedSyntax.replace(new RegExp(`\\b${name}\\b`, "g"), value);
+        }
+        return { when: when, to: normalizedTo, resolvedSyntax };
+    });
+}
+
+
 // Normalize the "definedBy" field into a consistent string format for display.
 function normalizeDefinedBy(value: unknown, fallback: string): string {
     if (!value) return fallback;
@@ -281,6 +305,10 @@ export default function loadInstructions(): InstructionInfo[] {
                 },
                 extensionSlug: slugifyExtension(extension),
                 extension, bitfieldSVG,
+                pseudoinstructions: preprocessPseudoInstructions(
+                    doc.pseudoinstructions ?? [],
+                    (doc.name + " " + assemblyArgs).trim(),
+                ),
             });
         }
     }

@@ -20,6 +20,13 @@ interface EncodingDoc {
 }
 
 
+interface PseudoInstruction {
+    when: string;
+    to: string;
+    resolvedSyntax: string;
+}
+
+
 interface YamlDoc {
     name: string;
     long_name?: string;
@@ -28,6 +35,7 @@ interface YamlDoc {
     base?: number;
     assembly?: string | string[];
     encoding?: EncodingDoc;
+    pseudoinstructions?: PseudoInstruction[];
 }
 
 interface InstructionInfo {
@@ -50,6 +58,7 @@ interface InstructionInfo {
     extension: string;
     extensionSlug: string;
     bitfieldSVG: string;
+    pseudoinstructions: PseudoInstruction[];
 }
 
 interface ExtensionInfo {
