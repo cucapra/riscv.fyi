@@ -31,6 +31,21 @@ extra_css:
         </span>
     </li>
 {% endfor %}
+
+{% for pseudo in pseudoInstructions %}
+    <li
+        data-search="{{ pseudo.mnemonic | lower }}"
+        data-mnemonic="{{ pseudo.mnemonic | lower }}"
+        data-extension="{{ pseudo.extension }}"
+        data-extension-slug="{{ pseudo.extensionSlug }}"
+    >
+        <a href="/{{ pseudo.extensionSlug }}/{{ pseudo.realInstName }}/">{{ pseudo.mnemonic }}</a>
+        <span class="ext-name" title="Extension">
+            - {{ pseudo.extension }}
+        </span>
+        <span class="extension-description">Pseudo-Instruction (&#8594; {{ pseudo.realInstName }})</span>
+    </li>
+{% endfor %}
 </ul>
 
 <script type="module" src="/scripts/search.js"></script>

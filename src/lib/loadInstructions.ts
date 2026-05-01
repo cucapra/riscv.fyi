@@ -147,7 +147,7 @@ function detectEncodingType(doc: YamlDoc) {
 
 /*
 Enrich pseudo-instruction entries for display:
-- Builds `resolvedSyntax` by substituting the simple `name == value` pairs from 
+- Builds `resolvedSyntax` by substituting the simple `name == value` pairs from
 the `when` condition into the real instruction syntax.
 - Complex expressions (e.g. $signed(imm) == -1, imm[4:0] == 0) are left unreplaced.
 */

@@ -3,6 +3,7 @@ interface Segment {
     to: number;
 }
 
+
 interface Field {
     label: string;
     from: number;
@@ -38,6 +39,7 @@ interface YamlDoc {
     pseudoinstructions?: PseudoInstruction[];
 }
 
+
 interface InstructionInfo {
     name: string;
     longName: string;
@@ -61,12 +63,33 @@ interface InstructionInfo {
     pseudoinstructions: PseudoInstruction[];
 }
 
+
+interface PseudoInstructionInfo {
+    mnemonic: string;
+    syntax: string;
+    realInstName: string;
+    extension: string;
+    extensionSlug: string;
+}
+
+
+interface ExtensionListEntry {
+    name: string;
+    url: string;
+    label: string;
+    isPseudo: boolean;
+    base: number;
+}
+
 interface ExtensionInfo {
     name: string;
     slug: string;
     description: string | null;
     instructions: InstructionInfo[];
-    count?: number;
+    pseudoInstructions: PseudoInstructionInfo[];
+    sortedEntries: ExtensionListEntry[];
+    count: number;
+    pseudoCount: number;
 }
 
 
