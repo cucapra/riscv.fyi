@@ -25,5 +25,5 @@ export default function loadSearchEntries(): SearchEntry[] {
         realInstName: p.realInstName,
     }));
 
-    return [...real, ...pseudo].sort((a, b) => a.name.localeCompare(b.name));
+    return [...real, ...pseudo].sort((a, b) => a.extension.localeCompare(b.extension) || a.name.localeCompare(b.name));
 }
