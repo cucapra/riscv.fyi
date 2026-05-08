@@ -1,3 +1,4 @@
+// Run with npx tsx src/scripts/missingEncodings.ts
 import loadInstructions from "../lib/loadInstructions.js";
 
 const missing = loadInstructions().filter((inst) => inst.encoding.fields.length === 0);

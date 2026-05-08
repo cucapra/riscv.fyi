@@ -11,12 +11,42 @@ import * as fs from "fs";
 
 
 const INST_ROOT = path.join(process.cwd(), "riscv-unified-db", "spec", "std", "isa", "inst");
+const ISA_ROOT = path.join(process.cwd(), "riscv-unified-db", "spec", "std", "isa");
 let cache: InstructionInfo[] | null = null;
 
 
 function readYamlFile(p: string): YamlDoc {
     const txt = fs.readFileSync(p, "utf8");
     return yaml.load(txt) as YamlDoc;
+}
+
+
+// Read a YAML file relative to ISA_ROOT to resolve $inherits references.
+function resolveInheritedValue(ref: string): unknown {
+    const [filePart, fragPart] = ref.split("#");
+    const filePath = path.join(ISA_ROOT, filePart);
+    if (!fs.existsSync(filePath)) return null;
+    let obj: unknown = yaml.load(fs.readFileSync(filePath, "utf8"));
+
+    if (fragPart) {
+        for (const key of fragPart.split("/").filter(Boolean)) {
+            if (typeof obj !== "object" || obj === null) return null;
+            obj = (obj as Record<string, unknown>)[key];
+        }
+    }
+    return obj;
+}
+
+
+// Follow $inherits chains until a `location` field is found
+function resolveLocation(ref: string): string | number | null {
+    const obj = resolveInheritedValue(ref);
+    if (typeof obj !== "object" || obj === null) return null;
+    const o = obj as Record<string, unknown>;
+
+    if (o.location !== undefined) return o.location as string | number;
+    if (typeof o["$inherits"] === "string") return resolveLocation(o["$inherits"]);
+    return null;
 }
 
 
@@ -54,6 +84,98 @@ function parseLocationSegments(loc: string | number): Segment[] {
 
 
 /*
+Place opcode constant bits into a match string at their declared locations.
+This function is use to create a synthetic encoding match pattern for instructions
+that use $inherits for their encoding instead of an inline `encoding` block like
+andn, rol, etc.
+*/
+function buildMatchString(
+    opcodeValues: Record<string, number>,
+    opcodeLocations: Record<string, string | number>,
+    totalBits: number,
+): string {
+    const arr = Array<string>(totalBits).fill("-");
+    for (const [key, val] of Object.entries(opcodeValues)) {
+        const loc = opcodeLocations[key];
+        if (loc === undefined) continue;
+
+        const segments = parseLocationSegments(loc).sort((a, b) => b.from - a.from);
+        const width = segments.reduce((sum, s) => sum + (s.from - s.to + 1), 0);
+        const valBits = val.toString(2).padStart(width, "0");
+        let bitIdx = 0;
+
+        for (const seg of segments) {
+            for (let bit = seg.from; bit >= seg.to; bit--) {
+                arr[totalBits - 1 - bit] = valBits[bitIdx++];
+            }
+        }
+    }
+    return arr.join("");
+}
+
+
+/*
+Build a synthetic EncodingDoc from the format.$inherits schema used by some
+instructions (e.g. andn, rol) that provide encoding via a subtype reference
+instead of an inline `encoding` block. Variable positions and opcode field
+locations are resolved dynamically from the referenced subtype YAML files.
+*/
+function resolveFormatEncoding(doc: YamlDoc): EncodingDoc | null {
+    const fmt = doc.format;
+    if (!fmt) return null;
+    const inherits = fmt["$inherits"] as string[] | undefined;
+    if (!Array.isArray(inherits) || inherits.length === 0) return null;
+    const subtypeData = resolveInheritedValue(inherits[0]) as Record<string, unknown> | null;
+    if (!subtypeData) return null;
+
+    // Resolve variable names -> locations from the subtype
+    const varDefs = subtypeData.variables as Record<string, Record<string, unknown>> | undefined;
+    if (!varDefs) return null;
+    const variables: { name: string; location: string | number }[] = [];
+    for (const [varName, varDef] of Object.entries(varDefs)) {
+        const location = typeof varDef["$inherits"] === "string"
+            ? resolveLocation(varDef["$inherits"])
+            : (varDef.location as string | number | undefined) ?? null;
+        if (location === null) return null;
+        variables.push({ name: varName, location });
+    }
+
+    // Resolve opcode field locations from the subtype's type definition
+    const subtypeOpcodes = subtypeData.opcodes as Record<string, unknown> | undefined;
+    if (!subtypeOpcodes) return null;
+    const opcodeLocations: Record<string, string | number> = {};
+    if (typeof subtypeOpcodes["$inherits"] === "string") {
+        const resolved = resolveInheritedValue(subtypeOpcodes["$inherits"]) as Record<string, unknown> | null;
+        if (resolved) {
+            for (const [key, val] of Object.entries(resolved)) {
+                const loc = (val as Record<string, unknown>)?.location;
+                if (loc !== undefined) opcodeLocations[key] = loc as string | number;
+            }
+        }
+    }
+
+    // Resolve opcode values from doc.format.opcodes
+    const formatOpcodes = fmt.opcodes as Record<string, Record<string, unknown>> | undefined;
+    if (!formatOpcodes) return null;
+    const opcodeValues: Record<string, number> = {};
+    for (const [key, entry] of Object.entries(formatOpcodes)) {
+        let val = entry.value;
+        if (val === undefined && typeof entry["$inherits"] === "string") {
+            const resolved = resolveInheritedValue(entry["$inherits"]) as Record<string, unknown> | null;
+            val = resolved?.value;
+        }
+        if (typeof val !== "number") return null;
+        opcodeValues[key] = val;
+    }
+
+    return {
+        match: buildMatchString(opcodeValues, opcodeLocations, 32),
+        variables,
+    };
+}
+
+
+/*
 Extract all variable and constant fields from an instruction definition.
 This function handles both flat encodings and multi-variant encodings
 (e.g., RV32 / RV64). It returns an array of field descriptors like:
@@ -73,8 +195,8 @@ function computeFields(doc: YamlDoc): Field[] {
     // Encodings may be a flat object with match string/variables or
     // a map of variants (e.g., { RV32: {...}, RV64: {...} });
     const fields: Field[] = [];
-    if (!doc.encoding) return fields;
-    let enc = doc.encoding;
+    let enc = doc.encoding ?? resolveFormatEncoding(doc)
+    if (!enc) return fields;
 
     if (!enc.match && !enc.variables) {
         const variants = Object.keys(enc); // e.g., ["RV32", "RV64"]
@@ -131,8 +253,9 @@ function computeFields(doc: YamlDoc): Field[] {
 
 // Match common instruction formats (I, S, R) based on their variable field positions.
 function detectEncodingType(doc: YamlDoc) {
-    if (!doc.encoding || !Array.isArray(doc.encoding.variables)) return undefined;
-    const vars = Object.fromEntries(doc.encoding.variables.map((v) => [v.name, String(v.location)]));
+    const enc = doc.encoding ?? resolveFormatEncoding(doc)
+    if (!enc || !Array.isArray(enc.variables)) return undefined;
+    const vars = Object.fromEntries(enc.variables.map((v) => [v.name, String(v.location)]));
     const eq = (name: string, hi: number, lo: number) => vars[name] === hi + "-" + lo;
 
     if (eq("xd", 11, 7) && eq("xs1", 19, 15) && eq("imm", 31, 20)) return "I";
@@ -252,19 +375,18 @@ export default function loadInstructions(): InstructionInfo[] {
             const fields = computeFields(doc);
             const encType = detectEncodingType(doc);
 
+            const effectiveEnc = doc.encoding ?? resolveFormatEncoding(doc)
             let opcode, funct3, funct7;
-            if (doc.encoding && doc.encoding.match) {
-                const m = parseMatchBits(doc.encoding.match);
-                if (m) {
-                    const sliceBits = (hi: number, lo: number) => m.slice(31 - hi, 32 - lo).join("");
-                    opcode = sliceBits(6, 0);
-                    funct3 = sliceBits(14, 12);
-                    const f7 = sliceBits(31, 25);
-                    funct7 = /^[01]{7}$/.test(f7) ? f7 : undefined;
-                }
+            if (effectiveEnc?.match) {
+                const m = parseMatchBits(effectiveEnc.match);
+                const sliceBits = (hi: number, lo: number) => m.slice(31 - hi, 32 - lo).join("");
+                opcode = sliceBits(6, 0);
+                funct3 = sliceBits(14, 12);
+                const f7 = sliceBits(31, 25);
+                funct7 = /^[01]{7}$/.test(f7) ? f7 : undefined;
             }
 
-            const totalBits = doc.encoding?.match?.length === 16 ? 16 : 32;
+            const totalBits = effectiveEnc?.match?.length === 16 ? 16 : 32;
             const filledFields = expandBitfieldFields(fields, totalBits);
             const bitfieldJSON = {
                 reg: filledFields.map((f) => {
@@ -299,8 +421,8 @@ export default function loadInstructions(): InstructionInfo[] {
                 syntax: (doc.name + " " + assemblyArgs).trim(),
                 encodingType: encType,
                 encoding: {
-                    match: doc.encoding?.match || null,
-                    variables: doc.encoding?.variables || [],
+                    match: effectiveEnc?.match || null,
+                    variables: effectiveEnc?.variables || [],
                     fields, opcode, funct3, funct7,
                 },
                 extensionSlug: slugifyExtension(extension),
