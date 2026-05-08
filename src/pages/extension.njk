@@ -19,7 +19,7 @@ layout: layout.njk
         {% if entry.isPseudo %}
             - <span class="extension-description">{{ entry.label }}</span>
         {% else %}
-            - {{ entry.label}}
+            - {{ entry.label }}
             {% if entry.base != 32 %}
                 <span class="base-width" title="This instruction is only present in the {{entry.base}}-bit version of the ISA.">{{ entry.base }}</span>
             {% endif %}
