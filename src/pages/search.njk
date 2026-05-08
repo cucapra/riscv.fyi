@@ -18,17 +18,18 @@ extra_css:
 </fieldset>
 
 <ul id="instruction_list">
-{% for inst in instructions %}
+{% for entry in searchEntries %}
     <li
-        data-search="{{ (inst.name ~ ' ' ~ inst.longName) | lower }}"
-        data-mnemonic="{{ inst.name | lower }}"
-        data-extension="{{ inst.extension }}"
-        data-extension-slug="{{ inst.extensionSlug }}"
+        data-search="{{ entry.search }}"
+        data-mnemonic="{{ entry.mnemonic }}"
+        data-extension="{{ entry.extension }}"
+        data-extension-slug="{{ entry.extensionSlug }}"
     >
-        <a href="/{{ inst.extensionSlug }}/{{ inst.name }}/">{{ inst.name }}</a>
-        <span class="ext-name" title="Extension">
-            - {{ inst.extension }}
-        </span>
+        <a href="{{ entry.url }}">{{ entry.name }}</a>
+        <span class="ext-name" title="Extension">- {{ entry.extension }}</span>
+        {% if entry.isPseudo %}
+            <span class="extension-description">Pseudo-Instruction (→ {{ entry.realInstName }})</span>
+        {% endif %}
     </li>
 {% endfor %}
 </ul>

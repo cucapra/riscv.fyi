@@ -10,15 +10,19 @@ layout: layout.njk
 ---
 <h1>{{ extension.name }} Extension</h1>
 
-<p>{{ extension.count }} instructions in the {{ extension.name }} extension.</p>
+<p>{{ extension.count }} instructions and {{ extension.pseudoCount }} pseudo-instructions in the {{ extension.name }} extension.</p>
 
 <ul class="instruction-list">
-{% for inst in extension.instructions %}
-    <li data-name="{{ inst.name | lower }}">
-        <a href="/{{ inst.extensionSlug }}/{{ inst.name }}/">{{ inst.name }}</a>
-        — {{ inst.longName }}
-        {% if inst.base != 32 %}
-            <span class="base-width" title="This instruction is only present in the {{inst.base}}-bit version of the ISA.">{{ inst.base }}</span>
+{% for entry in extension.sortedEntries %}
+    <li data-name="{{ entry.name | lower }}">
+        <a href="{{ entry.url }}">{{ entry.name }}</a>
+        {% if entry.isPseudo %}
+            - <span class="extension-description">{{ entry.label }}</span>
+        {% else %}
+            - {{ entry.label}}
+            {% if entry.base != 32 %}
+                <span class="base-width" title="This instruction is only present in the {{entry.base}}-bit version of the ISA.">{{ entry.base }}</span>
+            {% endif %}
         {% endif %}
     </li>
 {% endfor %}

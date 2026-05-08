@@ -1,4 +1,6 @@
 import loadInstructions from "./loadInstructions.js";
+import loadPseudoInstructions from "./loadPseudoInstructions.js";
+
 import * as yaml from "js-yaml";
 import * as path from "path";
 import * as fs from "fs";
@@ -57,6 +59,7 @@ function loadExtensionDescriptions(): Map<string, string> {
 // or add a separate step to include them in the output list.
 export default (): ExtensionInfo[] => {
     const instructions: InstructionInfo[] = loadInstructions();
+    const pseudoInstructions: PseudoInstructionInfo[] = loadPseudoInstructions();
     const extensionDescriptions = loadExtensionDescriptions();
     const byExtension = new Map<string, ExtensionInfo>();
 
@@ -72,18 +75,42 @@ export default (): ExtensionInfo[] => {
             byExtension.set(name, {
                 name, slug,
                 description: extensionDescriptions.get(name) ?? null,
-                instructions: [],
+                instructions: [], pseudoInstructions: [], sortedEntries: [],
+                count: 0, pseudoCount: 0,
             });
         }
         byExtension.get(name)!.instructions.push(inst);
     }
 
-    // Sort instructions within each extension and count them
+    // Group pseudo-instructions by extension
+    for (const pseudo of pseudoInstructions) {
+        byExtension.get(pseudo.extension)?.pseudoInstructions.push(pseudo);
+    }
+
+    // Sort instructions and pseudo-instructions within each extension, and create sortedEntries
     const list = Array.from(byExtension.values());
     for (const entry of list) {
-        entry.instructions.sort((a: InstructionInfo, b: InstructionInfo) =>
-            a.name.localeCompare(b.name));
+        entry.instructions.sort((a, b) => a.name.localeCompare(b.name));
         entry.count = entry.instructions.length;
+        entry.pseudoInstructions.sort((a, b) => a.mnemonic.localeCompare(b.mnemonic));
+        entry.pseudoCount = entry.pseudoInstructions.length;
+
+        const realEntries: ExtensionListEntry[] = entry.instructions.map((inst) => ({
+            name: inst.name,
+            url: `/${inst.extensionSlug}/${inst.name}/`,
+            label: inst.longName,
+            isPseudo: false,
+            base: inst.base,
+        }));
+        const pseudoEntries: ExtensionListEntry[] = entry.pseudoInstructions.map((p) => ({
+            name: p.mnemonic,
+            url: `/${p.extensionSlug}/${p.realInstName}/`,
+            label: `Pseudo-Instruction (→ ${p.realInstName})`,
+            isPseudo: true,
+            base: 32, // Default to 32-bit, but not used
+        }));
+        entry.sortedEntries = [...realEntries, ...pseudoEntries]
+            .sort((a, b) => a.name.localeCompare(b.name));
     }
 
     // Sort extensions alphabetically by name

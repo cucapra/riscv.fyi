@@ -17,6 +17,16 @@ extra_css:
 <section>
     <h2>Synopsis</h2>
     <pre><code>{{ inst.syntax }}</code></pre>
+
+    <ul>
+        {% for pseudo in inst.pseudoinstructions %}
+            <li>
+                <pre><b>Pseudo-Instruction</b> <code>{{ pseudo.to }}</code>
+            <b>equals</b> <code>{{ pseudo.resolvedSyntax }}</code>
+              <b>when</b> <code>{{ pseudo.when }}</code></pre>
+            </li>
+        {% endfor %}
+    </ul>
 </section>
 
 <section>
@@ -34,6 +44,7 @@ extra_css:
         {% if inst.encoding.opcode %}<div><strong>opcode</strong>: {{ inst.encoding.opcode }}</div>{% endif %}
     </div>
 </section>
+
 
 <section>
     <h2>RISC-V Instruction Encoder/Decoder</h2>
