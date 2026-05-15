@@ -36,6 +36,7 @@ interface YamlDoc {
     base?: number;
     assembly?: string | string[];
     encoding?: EncodingDoc;
+    format?: Record<string, unknown>;
     pseudoinstructions?: PseudoInstruction[];
 }
 
