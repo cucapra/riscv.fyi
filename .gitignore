@@ -3,3 +3,4 @@ _site/
 .DS_Store
 src/**/*.js
 !src/_data/*.js
+*.md
