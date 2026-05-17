@@ -67,7 +67,7 @@ report(
 
 
 report(
-    "instructions with garbled 'defined by' (normalizeDefinedBy failed on nested allOf/anyOf — shows [object Object] on instruction page)",
+    "instructions with garbled 'defined by' (shows [object Object] in EXTENSION field on INSTRUCTION PAGE)",
     instructions
         .filter((inst) => inst.definedBy.includes("[object"))
         .map((inst) => `${inst.extension.padEnd(20)} ${inst.name}`),

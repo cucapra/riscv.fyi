@@ -293,15 +293,33 @@ function preprocessPseudoInstructions(
 
 
 // Normalize the "definedBy" field into a consistent string format for display.
+// The UDB uses nested anyOf/allOf/oneOf/extension/xlen structures; this recursively
+// extracts extension names and drops xlen constraints (already captured in inst.base).
+// .filter(Boolean) is used to remove empty values from the final output.
 function normalizeDefinedBy(value: unknown, fallback: string): string {
     if (!value) return fallback;
     if (typeof value === "string") return value;
-    if (Array.isArray(value)) return value.join(", ");
-    if (typeof value === "object") {
+    if (Array.isArray(value)) {
+        const parts = value.map((v) => normalizeDefinedBy(v, "")).filter(Boolean);
+        return parts.join(", ") || fallback;
+    }
+    if (typeof value === "object" && value !== null) {
         const obj = value as Record<string, unknown>;
-        if (Array.isArray(obj.anyOf)) return obj.anyOf.join(" or ");
-        if (Array.isArray(obj.allOf)) return obj.allOf.join(" and ");
         if (typeof obj.name === "string") return obj.name;
+        if ("extension" in obj) return normalizeDefinedBy(obj.extension, fallback);
+        
+        if (Array.isArray(obj.anyOf) || Array.isArray(obj.oneOf)) {
+            const items = (obj.anyOf ?? obj.oneOf) as unknown[];
+            const parts = items.map((v) => normalizeDefinedBy(v, "")).filter(Boolean);
+            return parts.join(" or ") || fallback;
+        }
+        if (Array.isArray(obj.allOf)) {
+            const parts = obj.allOf
+                .filter((v) => !(typeof v === "object" && v !== null && "xlen" in v))
+                .map((v) => normalizeDefinedBy(v, ""))
+                .filter(Boolean);
+            return parts.join(", ") || fallback;
+        }
     }
     return fallback;
 }
