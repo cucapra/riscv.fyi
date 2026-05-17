@@ -252,18 +252,66 @@ function computeFields(doc: YamlDoc): Field[] {
 
 
 // Match common instruction formats (I, S, R) based on their variable field positions.
+// From https://sourceware.org/binutils/docs/as/RISC_002dV_002dFormats.html
+// From Instruction Set Manual Volume I, Version 20240411
 function detectEncodingType(doc: YamlDoc) {
     const enc = doc.encoding ?? resolveFormatEncoding(doc)
     if (!enc || !Array.isArray(enc.variables)) return undefined;
     const vars = Object.fromEntries(enc.variables.map((v) => [v.name, String(v.location)]));
-    const eq = (name: string, hi: number, lo: number) => vars[name] === hi + "-" + lo;
+    const eq = (name: string, hi: number, lo: number) => {
+        const search = hi === lo ? String(hi) : `${hi}-${lo}`;
+        return vars[name]?.includes(search) ?? false;
+    };
 
-    if (eq("xd", 11, 7) && eq("xs1", 19, 15) && eq("imm", 31, 20)) return "I";
-    if (eq("xd", 11, 7) && eq("xs1", 19, 15) && eq("xs2", 24, 20)) return "R";
-    if (eq("xs2", 24, 20) && eq("xs1", 19, 15) && eq("imm", 11, 7)) return "S";
-    if (eq("imm", 31, 12) && eq("xd", 11, 7)) return "U";
-    if (eq("imm", 31, 12) && eq("xs1", 19, 15)) return "J";
-    if (eq("xs2", 24, 20) && eq("xs1", 19, 15) && eq("imm", 11, 7)) return "B";
+    const equivalent: Record<string, string[]> = {
+        rd:  ["rd",  "xd"],  xd:  ["rd",  "xd"],
+        rs1: ["rs1", "xs1"], xs1: ["rs1", "xs1"],
+        rs2: ["rs2", "xs2"], xs2: ["rs2", "xs2"],
+    };
+
+    const check = (names: string[], positions: [number, number][]) => {
+        if (names.length !== positions.length) return false;
+        for (let i = 0; i < names.length; i++) {
+            let found = false;
+            for (const altName of equivalent[names[i]] ?? [names[i]]) {
+                if (eq(altName, positions[i][0], positions[i][1])) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return false;
+        }
+        return true;
+    };
+
+    const formatNamesR: string[] = ["rd", "rs1", "rs2"];
+    const formatPositionsR: [number, number][] = [[11, 7], [19, 15], [24, 20]];
+    if (check(formatNamesR, formatPositionsR)) return "R";
+
+    const formatNamesR4: string[] = ["rd", "rs1", "rs2", "rs3"];
+    const formatPositionsR4: [number, number][] = [[11, 7], [19, 15], [24, 20], [31, 27]];
+    if (check(formatNamesR4, formatPositionsR4)) return "R4";
+
+    const formatNamesI: string[] = ["rd", "rs1", "imm"];
+    const formatPositionsI: [number, number][] = [[11, 7], [19, 15], [31, 20]];
+    if (check(formatNamesI, formatPositionsI)) return "I";
+
+    const formatNamesS: string[] = ["imm", "rs1", "rs2", "imm"];
+    const formatPositionsS: [number, number][] = [[11, 7], [19, 15], [24, 20], [31, 25]];
+    if (check(formatNamesS, formatPositionsS)) return "S";
+
+    const formatNamesB: string[] = ["imm", "imm", "rs1", "rs2", "imm", "imm"];
+    const formatPositionsB: [number, number][] = [[7, 7], [11, 8], [19, 15], [24, 20], [30, 25], [31, 31]];
+    if (check(formatNamesB, formatPositionsB)) return "B";
+
+    const formatNamesU: string[] = ["rd", "imm"];
+    const formatPositionsU: [number, number][] = [[11, 7], [31, 12]];
+    if (check(formatNamesU, formatPositionsU)) return "U";
+
+    const formatNamesJ: string[] = ["rd", "imm", "imm", "imm", "imm"];
+    const formatPositionsJ: [number, number][] = [[11, 7], [19, 12], [20, 20], [30, 21], [31, 31]];
+    if (check(formatNamesJ, formatPositionsJ)) return "J";
+
     return undefined;
 }
 
@@ -307,7 +355,7 @@ function normalizeDefinedBy(value: unknown, fallback: string): string {
         const obj = value as Record<string, unknown>;
         if (typeof obj.name === "string") return obj.name;
         if ("extension" in obj) return normalizeDefinedBy(obj.extension, fallback);
-        
+
         if (Array.isArray(obj.anyOf) || Array.isArray(obj.oneOf)) {
             const items = (obj.anyOf ?? obj.oneOf) as unknown[];
             const parts = items.map((v) => normalizeDefinedBy(v, "")).filter(Boolean);
